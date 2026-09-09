@@ -75,8 +75,11 @@
   --or-voile:rgba(212,175,55,.10);
   --or-bord:rgba(212,175,55,.34);
 
-  --rayon:24px;
-  --rayon-sm:14px;
+  /* Coins nettement plus ronds depuis le 09/09 : les références de Samer
+     tiennent beaucoup à ce rayon généreux, c'est lui qui fait « objet de
+     verre » plutôt que « boîte ». */
+  --rayon:28px;
+  --rayon-sm:16px;
   --wrap:1280px;
   --pas:clamp(68px,7.6vw,122px);  /* la respiration entre deux sections — resserrée
                                      le 09/09 : à 148 px l'espace se lisait vide,
@@ -178,6 +181,39 @@ table{border-collapse:collapse;width:100%;}
   width:min(1700px,170vw);height:min(880px,100vw);pointer-events:none;z-index:0;
   background:radial-gradient(closest-side,rgba(255,255,255,.135),rgba(255,255,255,.045) 42%,transparent 72%);
 }
+/* LA NAPPE. Le halo ci-dessus s'arrête au-dessus du contenu ; les cartes, plus
+   bas, n'avaient donc rien derrière elles — et un `backdrop-filter` sans rien
+   derrière ne produit aucune image. Cette nappe descend sur toute la hauteur
+   de la section, très faible, et c'est elle que le verre floute et occulte.
+   C'est la grande lumière diffuse des références de Samer.
+   `z-index:0` et pas de `overflow` : elle passe SOUS le contenu, qui est en
+   `position:relative` dans `.wrap`. */
+.sec::before{
+  content:"";position:absolute;inset:0;pointer-events:none;z-index:0;
+  background:
+    radial-gradient(110% 56% at 50% -6%,rgba(255,255,255,.055),transparent 66%),
+    radial-gradient(72% 42% at 16% 30%,rgba(255,255,255,.026),transparent 70%),
+    radial-gradient(72% 42% at 86% 62%,rgba(255,255,255,.022),transparent 70%);
+}
+/* Elle est TOUJOURS là, sur chaque section — y compris celles sans halo,
+   comme la grille des niveaux : ce sont justement les cartes qui comptent le
+   plus, et elles n'avaient rien derrière elles. Une section à halo la reçoit
+   plus forte, puisqu'elle porte déjà une source de lumière. */
+.sec-halo::before{
+  background:
+    radial-gradient(120% 62% at 50% -8%,rgba(255,255,255,.085),transparent 68%),
+    radial-gradient(80% 46% at 18% 34%,rgba(255,255,255,.038),transparent 70%),
+    radial-gradient(80% 46% at 86% 58%,rgba(255,255,255,.030),transparent 70%);
+}
+/* Sur les deux sections qui portent la décision d'achat, la nappe prend l'or —
+   comme le halo. C'est la seule fois où la couleur sert de lumière. */
+.sec-halo:has(.halo-or)::before{
+  background:
+    radial-gradient(120% 62% at 50% -8%,rgba(212,175,55,.075),transparent 68%),
+    radial-gradient(80% 46% at 18% 34%,rgba(255,255,255,.034),transparent 70%),
+    radial-gradient(80% 46% at 86% 58%,rgba(212,175,55,.032),transparent 70%);
+}
+.wrap{position:relative;z-index:1;}
 .halo-hero{
   translate:-50% -38%;height:min(1080px,120vw);
   background:
@@ -311,12 +347,34 @@ table{border-collapse:collapse;width:100%;}
    bas, un LISERÉ DE LUMIÈRE sur l'arête supérieure (l'éclairage vient d'en
    haut, l'arête doit le prendre) et une ombre portée profonde qui décolle la
    carte du fond. */
+/* ── LE VERRE SOMBRE ───────────────────────────────────────────────────────
+   Réécrit le 09/09/2026 sur les références envoyées par Samer (décrites dans
+   2-BRANDING/REFERENCES-VERRE.md). La première version faisait du blanc à 8 %
+   sur du noir : ça donne un gris délavé, pas du verre. Trois corrections, qui
+   ne valent QUE prises ensemble :
+
+   1. La carte est presque NOIRE et elle OCCULTE la lumière au lieu de
+      l'ajouter — d'où le voile noir en fin de dégradé. Une carte plus claire
+      que son fond est une tache ; une carte plus sombre est un objet posé
+      devant une lampe.
+   2. Ce qui la définit n'est plus son fond mais son BORD, fin et franchement
+      visible. « Contrast does the work », dit la référence.
+   3. `backdrop-filter` ne sert à rien sans lumière derrière : la nappe de
+      `.sec-halo::before` (plus bas) descend derrière les cartes exprès. Le
+      flou sans la nappe, c'est du flou sur du noir — c'est-à-dire rien.
+
+   Le reflet en biais (première couche du dégradé) est ce qui fait lire
+   « verre » plutôt que « panneau » : la lumière vient du haut-gauche. */
 .carte,.cap,.mini,.niveau,.chiffre,.piece,.qa,.axe,.fiche,.an1,.tab-enveloppe{
   position:relative;
-  background:linear-gradient(180deg,rgba(255,255,255,.082),rgba(255,255,255,.026) 46%,rgba(255,255,255,.015));
+  background:
+    linear-gradient(148deg,rgba(255,255,255,.075) 0%,rgba(255,255,255,.014) 34%,transparent 60%),
+    linear-gradient(180deg,rgba(255,255,255,.028),rgba(0,0,0,.30) 78%,rgba(0,0,0,.42));
+  backdrop-filter:blur(26px) saturate(135%);
+  -webkit-backdrop-filter:blur(26px) saturate(135%);
   border:1px solid var(--bord);border-radius:var(--rayon);
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.085),
-             0 22px 46px -30px rgba(0,0,0,1);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.10),
+             0 26px 60px -34px rgba(0,0,0,1);
   transition:border-color .3s,box-shadow .3s,transform .3s,background .3s;
 }
 /* Le survol ne change pas la couleur, il ajoute de la lumière : la carte se
@@ -646,13 +704,113 @@ table{border-collapse:collapse;width:100%;}
 
 /* ─────────────────────────────────────── 14. Cartes de niveau ─────────── */
 .niveaux{gap:clamp(14px,1.6vw,18px);align-items:stretch;}
+/* ── LE SÉLECTEUR DE NIVEAU ────────────────────────────────────────────────
+   Une seule question à l'écran : le visiteur lit une phrase et touche une
+   réponse, il ne remplit pas un formulaire. Les réponses sont de grandes
+   cibles — c'est un site à 96 % lu au téléphone, un choix se prend au pouce.
+   Le bloc entier est `hidden` dans le HTML et révélé par le script : sans
+   JavaScript, le visiteur voit les quatre cartes, ce qui reste juste. */
+.selecteur{max-width:760px;margin:0 auto;}
+/* La jauge a besoin d'air AU-DESSUS : collée sous le paragraphe d'intro, à
+   0 % (donc réduite à son rail), elle se lisait comme un soulignement du
+   texte et non comme l'avancement du questionnaire. */
+.sel-jauge{
+  height:2px;border-radius:2px;background:rgba(255,255,255,.09);overflow:hidden;
+  margin:2.8rem 0 2.2rem;
+}
+.sel-jauge span{
+  display:block;height:100%;width:0;border-radius:2px;
+  background:linear-gradient(90deg,var(--or-bord),var(--or));
+  transition:width .45s cubic-bezier(.4,0,.2,1);
+}
+.sel-q{border:0;padding:0;margin:0;min-width:0;}
+.sel-num{
+  font-size:.72rem;letter-spacing:.13em;text-transform:uppercase;color:var(--or-clair);
+  padding:0;margin-bottom:.9rem;
+}
+.sel-titre{
+  font-size:clamp(1.5rem,3.4vw,2.15rem);font-weight:300;letter-spacing:-.02em;
+  line-height:1.2;color:var(--blanc);margin-bottom:1.6rem;text-wrap:balance;
+}
+.sel-reps{display:flex;flex-direction:column;gap:.7rem;}
+/* La réponse est une carte de verre à part entière : même matière que le
+   reste, mais plus fine, et son bord s'éclaire au survol comme les autres. */
+.sel-rep{
+  display:flex;align-items:center;justify-content:space-between;gap:1rem;
+  width:100%;text-align:left;cursor:pointer;font:inherit;
+  padding:1.05rem 1.3rem;border-radius:var(--rayon-sm);color:var(--g1);
+  background:
+    linear-gradient(148deg,rgba(255,255,255,.055) 0%,rgba(255,255,255,.010) 40%,transparent 64%),
+    linear-gradient(180deg,rgba(255,255,255,.020),rgba(0,0,0,.26) 80%,rgba(0,0,0,.34));
+  backdrop-filter:blur(18px) saturate(130%);-webkit-backdrop-filter:blur(18px) saturate(130%);
+  border:1px solid var(--bord);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.07);
+  transition:border-color .25s,color .25s,transform .25s,box-shadow .25s;
+}
+.sel-rep .ic{flex:0 0 auto;opacity:0;translate:-6px 0;transition:opacity .25s,translate .25s;color:var(--or-clair);}
+@media(hover:hover){
+  .sel-rep:hover{
+    border-color:var(--bord-fort);color:var(--blanc);transform:translateY(-1px);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.13),0 18px 40px -30px rgba(0,0,0,1);
+  }
+  .sel-rep:hover .ic{opacity:1;translate:0 0;}
+}
+.sel-rep:focus-visible{border-color:var(--or-bord);color:var(--blanc);}
+.sel-rep.est-pris{border-color:var(--or-bord);color:var(--blanc);}
+.sel-rep.est-pris .ic{opacity:1;translate:0 0;}
+.sel-retour{
+  margin-top:1.3rem;background:none;border:0;padding:.4rem 0;cursor:pointer;font:inherit;
+  font-size:.9rem;color:var(--g2);text-decoration:underline;text-underline-offset:4px;
+}
+.sel-retour:hover{color:var(--g1);}
+
+.sel-res-sur{
+  font-size:.72rem;letter-spacing:.13em;text-transform:uppercase;color:var(--or-clair);margin-bottom:.7rem;
+}
+.sel-res-titre{
+  font-size:clamp(1.9rem,4.4vw,2.9rem);font-weight:300;letter-spacing:-.03em;
+  line-height:1.12;color:var(--blanc);
+}
+.sel-res-prix{
+  font-size:1rem;color:var(--g2);margin-top:.5rem;
+}
+.sel-res-txt{font-size:1.02rem;line-height:1.62;color:var(--g1);margin-top:1.1rem;}
+.sel-res-parce{
+  margin-top:1.6rem;padding-top:1.4rem;border-top:1px solid var(--bord);
+}
+.sel-res-parce-t{
+  font-size:.72rem;letter-spacing:.13em;text-transform:uppercase;color:var(--g2);margin-bottom:.8rem;
+}
+.sel-res-parce ul{list-style:none;display:flex;flex-direction:column;gap:.5rem;}
+.sel-res-parce li{
+  font-size:.95rem;line-height:1.5;color:var(--g1);padding-left:1.1rem;position:relative;
+}
+.sel-res-parce li::before{
+  content:"";position:absolute;left:0;top:.62em;width:5px;height:5px;border-radius:50%;
+  background:var(--or);
+}
+.sel-resultat .actions{margin-top:1.9rem;}
+.sel-refaire{
+  margin-top:1.2rem;background:none;border:0;padding:.4rem 0;cursor:pointer;font:inherit;
+  font-size:.9rem;color:var(--g2);text-decoration:underline;text-underline-offset:4px;
+}
+.sel-refaire:hover{color:var(--g1);}
+/* La carte du niveau conseillé s'éclaire : le sélecteur et les cartes doivent
+   se répondre, sinon le résultat n'est qu'un texte de plus sur la page. */
+.niveau.est-choisi{
+  border-color:var(--or-bord);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.16),0 30px 70px -34px rgba(212,175,55,.55);
+}
+
 .niveau{padding:clamp(22px,2.3vw,28px);display:flex;flex-direction:column;}
 /* Le niveau conseillé : ce n'est PAS un fond coloré (l'or ne sert jamais de
    fond), c'est un bord d'or et un halo. Il ressort sans casser le monochrome. */
 .niveau-phare{
   border-color:transparent;
-  background:linear-gradient(180deg,rgba(212,175,55,.11),rgba(212,175,55,.03) 45%,rgba(255,255,255,.02));
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.12),
+  background:
+    linear-gradient(148deg,rgba(212,175,55,.13) 0%,rgba(212,175,55,.02) 36%,transparent 62%),
+    linear-gradient(180deg,rgba(255,255,255,.030),rgba(0,0,0,.28) 78%,rgba(0,0,0,.40));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.14),
              0 34px 76px -36px rgba(212,175,55,.4);
 }
 /* Le cadre du niveau conseillé n'est pas une bordure mais un dégradé posé

@@ -156,4 +156,143 @@
       obs.observe(el);
     });
   }
+
+  /* ── 5. Le sélecteur de niveau ──────────────────────────────────────────
+     Le visiteur répond à quatre questions sur SON commerce ; le site lui dit
+     quel niveau, en reprenant ses propres mots, puis ouvre WhatsApp avec ses
+     réponses déjà écrites.
+
+     Ce script ne connaît AUCUN contenu : ni les questions, ni les niveaux, ni
+     les phrases de résultat, ni le prix. Tout est porté par le HTML (attributs
+     `data-`, gabarits `<template>`), qui vient de `contenu.py`. Il applique
+     une règle, c'est tout — on change une question sans toucher ici.
+
+     La règle, en clair :
+       · les questions 1 à 3 donnent des POINTS à un ou deux niveaux ; le plus
+         haut total gagne, et à égalité c'est le niveau le plus BAS qui sort.
+         On ne survend pas : c'est ce que dit l'intro au visiteur, le calcul
+         doit le tenir ;
+       · la question 4 ne donne pas de points mais un PLANCHER : quelqu'un qui
+         dit vouloir être connu ne peut pas s'entendre répondre Foundation ;
+       · le niveau retenu est le plus haut des deux.
+
+     Le prix affiché n'est PAS calculé : il est lu sur la carte du niveau, dans
+     la même page. Il suit donc la bascule mensuel/annuel sans rien savoir
+     d'elle, et il ne peut pas se désynchroniser d'un prix. */
+  var sel = $('#selecteur');
+  if (sel) {
+    var qs = $$('.sel-q', sel);
+    var res = $('#sel-resultat'), barre = $('#sel-jauge-barre'), retour = $('#sel-retour');
+    var ORDRE = ['foundation', 'operations', 'complete', 'signature'];
+    var etat = [], index = 0;
+
+    var jauge = function (n) {
+      if (barre) barre.style.width = Math.round((n / qs.length) * 100) + '%';
+    };
+
+    var choisie = function (cle) {
+      $$('.niveau').forEach(function (c) {
+        c.classList.toggle('est-choisi', !!cle && c.getAttribute('data-niveau') === cle);
+      });
+    };
+
+    var montrer = function (i) {
+      index = i;
+      qs.forEach(function (q, k) { q.hidden = (k !== i); });
+      if (res) res.hidden = true;
+      if (retour) retour.hidden = (i === 0);
+      jauge(i);
+    };
+
+    var conclure = function () {
+      var points = {}, plancher = -1, notes = [];
+      etat.forEach(function (r) {
+        notes.push(r.note);
+        for (var k in r.poids) { points[k] = (points[k] || 0) + r.poids[k]; }
+        if (r.plancher) plancher = Math.max(plancher, ORDRE.indexOf(r.plancher));
+      });
+
+      // Parcours dans l'ordre croissant : à égalité de points, le premier
+      // rencontré l'emporte, donc le niveau le plus bas. C'est voulu.
+      var besoin = 0, record = -1;
+      ORDRE.forEach(function (cle, i) {
+        var p = points[cle] || 0;
+        if (p > record) { record = p; besoin = i; }
+      });
+      var cle = ORDRE[Math.max(besoin, plancher)];
+
+      var tpl = sel.querySelector('[data-resultat="' + cle + '"]');
+      var titre = $('#sel-res-titre'), txt = $('#sel-res-txt'), prixL = $('#sel-res-prix');
+      if (tpl) {
+        var c = tpl.content || tpl;
+        var b = c.querySelector('b'), s = c.querySelector('span');
+        if (titre && b) titre.textContent = b.textContent;
+        if (txt && s) txt.textContent = s.textContent;
+      }
+
+      // Le prix vient de la carte, jamais d'ici.
+      var carte = document.querySelector('.niveau[data-niveau="' + cle + '"]');
+      if (carte && prixL) {
+        var nom = carte.querySelector('h3'), pr = $('[data-prix]', carte), pe = $('[data-per]', carte);
+        prixL.textContent = (nom ? nom.textContent : '') + ' · '
+          + (pr ? pr.textContent : '') + ' ' + (pe ? pe.textContent : '');
+      }
+
+      var ul = $('#sel-res-notes');
+      if (ul) {
+        ul.textContent = '';
+        notes.forEach(function (n) {
+          var li = document.createElement('li');
+          li.textContent = n;
+          ul.appendChild(li);
+        });
+      }
+
+      var wa = $('#sel-res-wa');
+      if (wa) {
+        var msg = sel.getAttribute('data-message')
+          + ' It pointed me to ' + (carte && carte.querySelector('h3')
+            ? carte.querySelector('h3').textContent : cle)
+          + '. About me: ' + notes.join('; ') + '.';
+        wa.setAttribute('href', sel.getAttribute('data-wa') + '?text=' + encodeURIComponent(msg));
+      }
+
+      qs.forEach(function (q) { q.hidden = true; });
+      if (res) res.hidden = false;
+      if (retour) retour.hidden = true;
+      jauge(qs.length);
+      choisie(cle);
+    };
+
+    $$('.sel-rep', sel).forEach(function (b) {
+      b.addEventListener('click', function () {
+        var q = b.parentNode.parentNode;              // .sel-reps -> .sel-q
+        var i = qs.indexOf(q);
+        if (i < 0) return;
+        etat[i] = {
+          note: b.getAttribute('data-note') || '',
+          poids: JSON.parse(b.getAttribute('data-poids') || '{}'),
+          plancher: b.getAttribute('data-plancher') || '',
+        };
+        $$('.sel-rep', q).forEach(function (o) { o.classList.toggle('est-pris', o === b); });
+        if (i + 1 < qs.length) montrer(i + 1); else conclure();
+      });
+    });
+
+    if (retour) {
+      retour.addEventListener('click', function () { if (index > 0) montrer(index - 1); });
+    }
+    var refaire = $('#sel-refaire');
+    if (refaire) {
+      refaire.addEventListener('click', function () {
+        etat = [];
+        $$('.sel-rep', sel).forEach(function (o) { o.classList.remove('est-pris'); });
+        choisie('');
+        montrer(0);
+      });
+    }
+
+    sel.hidden = false;
+    montrer(0);
+  }
 })();

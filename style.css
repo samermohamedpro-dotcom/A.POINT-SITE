@@ -35,15 +35,15 @@
    navigateur ne télécharge donc que 48 Ko pour toutes les graisses. */
 @font-face{
   font-family:'Inter';
-  src:url('/A.POINT-SITE/polices/inter-latin-variable.woff2') format('woff2-variations'),
-      url('/A.POINT-SITE/polices/inter-latin-variable.woff2') format('woff2');
+  src:url('/polices/inter-latin-variable.woff2') format('woff2-variations'),
+      url('/polices/inter-latin-variable.woff2') format('woff2');
   font-weight:100 900; font-style:normal; font-display:swap;
 }
 /* Lora ne sert qu'à une chose : la voix humaine — une citation, une phrase
    qui parle. Deux fichiers, pas un de plus. */
-@font-face{font-family:'Lora';src:url('/A.POINT-SITE/polices/lora-latin-400-normal.woff2') format('woff2');
+@font-face{font-family:'Lora';src:url('/polices/lora-latin-400-normal.woff2') format('woff2');
   font-weight:400;font-style:normal;font-display:swap;}
-@font-face{font-family:'Lora';src:url('/A.POINT-SITE/polices/lora-latin-400-italic.woff2') format('woff2');
+@font-face{font-family:'Lora';src:url('/polices/lora-latin-400-italic.woff2') format('woff2');
   font-weight:400;font-style:italic;font-display:swap;}
 
 /* ─────────────────────────────────────────────── 2. Réglages ───────────── */

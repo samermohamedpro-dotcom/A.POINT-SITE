@@ -295,4 +295,119 @@
     sel.hidden = false;
     montrer(0);
   }
+
+  /* ── 6. La démonstration en direct ──────────────────────────────────────
+     Le visiteur commande pour de faux et voit le message WhatsApp s'écrire.
+     C'est « la preuve avant la promesse » rendue tangible : cinq étapes
+     numérotées expliquent le parcours, ici il le fait.
+
+     Comme le sélecteur, ce script ne connaît aucun contenu : les produits,
+     les prix, les zones et leurs frais sont lus dans le HTML. Il ne sait pas
+     ce qu'est un gâteau, il sait additionner ce qu'on lui montre.
+
+     Le message reproduit CELUI DU VRAI SYSTÈME : lignes de produits, puis
+     sous-total, livraison, total, puis le créneau. Si le vrai message change
+     un jour, celui-ci doit changer avec lui — sinon la démonstration ment. */
+  var demo = $('#demo');
+  if (demo) {
+    var bulle = $('#dm-bulle');
+    var devise = demo.getAttribute('data-devise') || '';
+    var zone = null, frais = 0, jour = null, heure = null;
+
+    var argent = function (n) { return devise + n.toLocaleString('en-US'); };
+
+    var ligne = function (classe, gauche, droite) {
+      var p = document.createElement('p');
+      p.className = classe;
+      var g = document.createElement('span'); g.textContent = gauche;
+      var d = document.createElement('span'); d.textContent = droite;
+      p.appendChild(g); p.appendChild(d);
+      return p;
+    };
+
+    var peindre = function () {
+      var lignes = [], sous = 0;
+      $$('.dm-prod', demo).forEach(function (li) {
+        var n = parseInt($('[data-n]', li).textContent, 10) || 0;
+        if (!n) return;
+        var prix = parseInt(li.getAttribute('data-prix'), 10) || 0;
+        sous += n * prix;
+        lignes.push([n + ' × ' + li.getAttribute('data-nom'), argent(n * prix)]);
+      });
+
+      bulle.textContent = '';
+      if (!lignes.length) {
+        var vide = document.createElement('p');
+        vide.className = 'dm-vide';
+        vide.textContent = demo.getAttribute('data-vide') || '';
+        bulle.appendChild(vide);
+        // Le texte d'origine est gardé dans l'attribut au premier passage :
+        // il vient de contenu.py et ne doit pas être réécrit ici.
+        return;
+      }
+
+      var debut = document.createElement('p');
+      debut.className = 'dm-debut';
+      debut.textContent = demo.getAttribute('data-debut') || '';
+      bulle.appendChild(debut);
+
+      lignes.forEach(function (l) { bulle.appendChild(ligne('dm-ligne', l[0], l[1])); });
+
+      bulle.appendChild(ligne('dm-ligne dm-sous',
+        demo.getAttribute('data-lab-soustotal'), argent(sous)));
+      if (zone) {
+        bulle.appendChild(ligne('dm-ligne dm-sous',
+          demo.getAttribute('data-lab-livraison') + ' (' + zone + ')', argent(frais)));
+      }
+      bulle.appendChild(ligne('dm-ligne dm-total',
+        demo.getAttribute('data-lab-total'), argent(sous + (zone ? frais : 0))));
+
+      if (jour || heure) {
+        var q = document.createElement('p');
+        q.className = 'dm-quand';
+        q.textContent = [jour, heure].filter(Boolean).join(', ');
+        bulle.appendChild(q);
+      }
+    };
+
+    // Le texte « rien encore » vient du HTML : on le met de côté avant le
+    // premier repeint, sinon il serait perdu dès le premier clic.
+    var vide0 = $('.dm-vide', bulle);
+    demo.setAttribute('data-vide', vide0 ? vide0.textContent : '');
+
+    $$('.dm-pas', demo).forEach(function (b) {
+      b.addEventListener('click', function () {
+        var li = b.parentNode.parentNode.parentNode;   // .dm-qte -> .dm-prod-fin -> li
+        var champ = $('[data-n]', li);
+        var n = (parseInt(champ.textContent, 10) || 0) + parseInt(b.getAttribute('data-pas'), 10);
+        if (n < 0) n = 0;
+        if (n > 20) n = 20;          // une démonstration, pas un panier de gros
+        champ.textContent = String(n);
+        li.classList.toggle('est-pris', n > 0);
+        peindre();
+      });
+    });
+
+    var groupe = function (id, surChoix) {
+      var boite = $(id);
+      if (!boite) return;
+      $$('.dm-jeton', boite).forEach(function (j) {
+        j.addEventListener('click', function () {
+          var deja = j.classList.contains('est-pris');
+          $$('.dm-jeton', boite).forEach(function (o) { o.classList.remove('est-pris'); });
+          if (!deja) j.classList.add('est-pris');
+          surChoix(deja ? null : j);
+          peindre();
+        });
+      });
+    };
+    groupe('#dm-zones', function (j) {
+      zone = j ? j.getAttribute('data-zone') : null;
+      frais = j ? (parseInt(j.getAttribute('data-frais'), 10) || 0) : 0;
+    });
+    groupe('#dm-jours', function (j) { jour = j ? j.getAttribute('data-jour') : null; });
+    groupe('#dm-heures', function (j) { heure = j ? j.getAttribute('data-heure') : null; });
+
+    demo.hidden = false;
+  }
 })();

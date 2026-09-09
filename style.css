@@ -704,6 +704,101 @@ table{border-collapse:collapse;width:100%;}
 
 /* ─────────────────────────────────────── 14. Cartes de niveau ─────────── */
 .niveaux{gap:clamp(14px,1.6vw,18px);align-items:stretch;}
+/* ── LA DÉMONSTRATION EN DIRECT ────────────────────────────────────────────
+   À gauche le téléphone de la cliente, à droite ce qui arrive chez le
+   pâtissier. Les deux côte à côte sur ordinateur, l'un sous l'autre au
+   téléphone — et dans cet ordre-là : on touche d'abord, on lit le résultat
+   ensuite. L'inverse ferait scroller pour comprendre ce qu'on vient de faire. */
+.demo{max-width:1040px;margin:0 auto;}
+.dm-grille{display:grid;gap:clamp(20px,3vw,34px);align-items:start;}
+@media(min-width:900px){.dm-grille{grid-template-columns:1fr 1fr;}}
+
+/* Le cadre de téléphone, en verre comme le reste. Il porte du contenu vivant
+   et non une image : il ne peut donc pas réutiliser `.tel`, bâti autour d'un
+   <img> à proportions fixes. */
+.dm-tel{
+  border-radius:32px;padding:clamp(14px,2vw,20px);
+  background:
+    linear-gradient(148deg,rgba(255,255,255,.075) 0%,rgba(255,255,255,.014) 34%,transparent 60%),
+    linear-gradient(180deg,rgba(255,255,255,.028),rgba(0,0,0,.34) 78%,rgba(0,0,0,.46));
+  backdrop-filter:blur(26px) saturate(135%);-webkit-backdrop-filter:blur(26px) saturate(135%);
+  border:1px solid var(--bord);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.10),0 30px 70px -34px rgba(0,0,0,1);
+}
+.dm-ecran{display:flex;flex-direction:column;gap:.55rem;}
+.dm-boutique{
+  font-size:1.05rem;font-weight:500;color:var(--blanc);letter-spacing:-.01em;
+  padding-bottom:.8rem;margin-bottom:.3rem;border-bottom:1px solid var(--bord);
+}
+.dm-etiq{
+  font-size:.7rem;letter-spacing:.13em;text-transform:uppercase;color:var(--g2);
+  margin-top:.9rem;
+}
+.dm-prods{list-style:none;display:flex;flex-direction:column;gap:.5rem;}
+.dm-prod{
+  display:flex;align-items:center;justify-content:space-between;gap:.9rem;
+  padding:.75rem .9rem;border-radius:var(--rayon-sm);
+  border:1px solid var(--bord);background:rgba(255,255,255,.018);
+  transition:border-color .25s,background .25s;
+}
+.dm-prod.est-pris{border-color:var(--or-bord);background:rgba(212,175,55,.05);}
+.dm-prod h4{font-size:.94rem;font-weight:500;color:var(--blanc);letter-spacing:-.01em;}
+.dm-prod p{font-size:.8rem;color:var(--g2);margin-top:.12rem;}
+.dm-prod-fin{display:flex;align-items:center;gap:.75rem;flex:0 0 auto;}
+.dm-prix{font-size:.9rem;color:var(--g1);min-width:2.6rem;text-align:right;}
+.dm-qte{display:flex;align-items:center;gap:.15rem;}
+/* 40 px, pas 34. La première version en faisait 34 et le commentaire affirmait
+   que ça suffisait ; les mesures d'écran ont dit le contraire à 320 et 390 px.
+   C'est exactement pourquoi on mesure au lieu de déduire. */
+.dm-pas{
+  width:40px;height:40px;border-radius:50%;cursor:pointer;font:inherit;font-size:1.05rem;
+  display:grid;place-items:center;color:var(--g1);
+  background:rgba(255,255,255,.04);border:1px solid var(--bord);
+  transition:border-color .2s,color .2s,background .2s;
+}
+.dm-pas:hover{border-color:var(--bord-fort);color:var(--blanc);background:rgba(255,255,255,.08);}
+.dm-n{min-width:1.5rem;text-align:center;font-size:.95rem;color:var(--blanc);}
+.dm-jetons{display:flex;flex-wrap:wrap;gap:.4rem;}
+.dm-jeton{
+  display:inline-flex;align-items:center;gap:.4rem;cursor:pointer;font:inherit;
+  padding:.5rem .85rem;border-radius:999px;font-size:.87rem;color:var(--g1);
+  background:rgba(255,255,255,.03);border:1px solid var(--bord);
+  transition:border-color .2s,color .2s,background .2s;
+}
+.dm-jeton:hover{border-color:var(--bord-fort);color:var(--blanc);}
+.dm-jeton.est-pris{border-color:var(--or-bord);color:var(--blanc);background:rgba(212,175,55,.07);}
+.dm-jeton-frais{color:var(--g2);font-size:.8rem;}
+.dm-jeton.est-pris .dm-jeton-frais{color:var(--or-clair);}
+
+.dm-cote{position:sticky;top:96px;}
+@media(max-width:899px){.dm-cote{position:static;}}
+.dm-cote-t{
+  font-size:.7rem;letter-spacing:.13em;text-transform:uppercase;color:var(--or-clair);
+  margin-bottom:.8rem;
+}
+/* La bulle de message : le seul endroit du site qui imite WhatsApp, et de
+   loin — un vert de messagerie sur cette page serait une deuxième couleur. */
+.dm-bulle{
+  border-radius:var(--rayon);padding:clamp(18px,2.4vw,26px);min-height:190px;
+  background:
+    linear-gradient(148deg,rgba(255,255,255,.06) 0%,rgba(255,255,255,.012) 40%,transparent 64%),
+    linear-gradient(180deg,rgba(255,255,255,.022),rgba(0,0,0,.30) 80%,rgba(0,0,0,.40));
+  backdrop-filter:blur(22px) saturate(130%);-webkit-backdrop-filter:blur(22px) saturate(130%);
+  border:1px solid var(--bord);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.10),0 24px 56px -34px rgba(0,0,0,1);
+  font-size:.95rem;line-height:1.6;color:var(--g1);
+}
+.dm-vide{color:var(--g2);font-style:italic;}
+.dm-debut{color:var(--blanc);margin-bottom:.9rem;}
+.dm-ligne{display:flex;justify-content:space-between;gap:1rem;padding:.16rem 0;}
+.dm-ligne.dm-sous{color:var(--g2);}
+.dm-sous:first-of-type{margin-top:.7rem;padding-top:.7rem;border-top:1px solid var(--bord);}
+.dm-total{
+  color:var(--blanc);font-size:1.05rem;margin-top:.45rem;padding-top:.55rem;
+  border-top:1px solid var(--bord);
+}
+.dm-quand{margin-top:.9rem;color:var(--or-clair);}
+
 /* ── LE SÉLECTEUR DE NIVEAU ────────────────────────────────────────────────
    Une seule question à l'écran : le visiteur lit une phrase et touche une
    réponse, il ne remplit pas un formulaire. Les réponses sont de grandes

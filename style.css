@@ -1,0 +1,902 @@
+@charset "utf-8";
+/* ═══════════════════════════════════════════════════════════════════════════
+   A.POINT ADVISORY — la feuille de style du site
+   ═══════════════════════════════════════════════════════════════════════════
+
+   Le langage visuel vient des trois références données par Samer le
+   09/09/2026, et il tient en cinq gestes :
+
+     1. Le noir n'est pas un fond, c'est le sujet. Tout le reste est posé
+        dessus par de très faibles écarts de luminosité — jamais par une
+        couleur. Un panneau de verre, c'est du blanc à 3 %.
+     2. Les titres sont énormes et LÉGERS. C'est le mot-marque A·POINT
+        agrandi : mêmes proportions, même respiration. Une graisse épaisse
+        détruirait le lien avec le logo.
+     3. Chaque titre est sur DEUX TONS : la première ligne en blanc, la
+        seconde en gris. C'est le geste signature ; il revient partout.
+     4. L'or est la SEULE couleur. Exactement comme le point du logo, qui
+        est depuis janvier 2026 « le seul élément de couleur ». Il ne sert
+        jamais de fond de bloc, jamais de paragraphe.
+     5. Des halos radiaux très doux en haut des sections, jamais porteurs
+        d'information : ils donnent la profondeur que le noir plat n'a pas.
+
+   Le vert profond de la charte imprimée (#1f5f4f) n'apparaît PAS ici. Sur
+   noir il vire au sourd et vole à l'or son rôle d'accent unique. La décision
+   est écrite dans JOURNAL.md, à sa date.
+
+   Ordre du fichier : réglages → base → mise en page → en-tête → composants →
+   sections particulières → pied → adaptations d'écran → accessibilité.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ─────────────────────────────────────────────── 1. Polices ────────────── */
+/* Auto-hébergées, jamais appelées chez Google : c'est ce qui rend vraie la
+   phrase « no third-party trackers » du site, et un test le vérifie.
+   Inter est une police VARIABLE : un seul fichier couvre 100 à 900, et le
+   navigateur ne télécharge donc que 48 Ko pour toutes les graisses. */
+@font-face{
+  font-family:'Inter';
+  src:url('/A.POINT-SITE/polices/inter-latin-variable.woff2') format('woff2-variations'),
+      url('/A.POINT-SITE/polices/inter-latin-variable.woff2') format('woff2');
+  font-weight:100 900; font-style:normal; font-display:swap;
+}
+/* Lora ne sert qu'à une chose : la voix humaine — une citation, une phrase
+   qui parle. Deux fichiers, pas un de plus. */
+@font-face{font-family:'Lora';src:url('/A.POINT-SITE/polices/lora-latin-400-normal.woff2') format('woff2');
+  font-weight:400;font-style:normal;font-display:swap;}
+@font-face{font-family:'Lora';src:url('/A.POINT-SITE/polices/lora-latin-400-italic.woff2') format('woff2');
+  font-weight:400;font-style:italic;font-display:swap;}
+
+/* ─────────────────────────────────────────────── 2. Réglages ───────────── */
+:root{
+  /* Les noirs. Trois seulement : le fond absolu, la section, la carte. */
+  --noir:#000;
+  --n1:#08080a;
+  --n2:#101013;
+
+  /* Le verre. Du blanc à très faible opacité — jamais une couleur grise
+     opaque : sur un halo, un gris opaque ferait une tache rectangulaire. */
+  --verre:rgba(255,255,255,.030);
+  --verre-fort:rgba(255,255,255,.055);
+  --bord:rgba(255,255,255,.085);
+  --bord-fort:rgba(255,255,255,.155);
+
+  /* Les textes. Contrastes mesurés sur fond noir :
+     blanc 21:1 · g1 11,4:1 · g2 6,7:1 · g3 3,4:1 (jamais pour du texte
+     porteur de sens, seulement pour une note ou un chiffre décoratif). */
+  --blanc:#fff;
+  --g1:#b9b9bd;
+  --g2:#8b8b90;
+  --g3:#5e5e64;
+
+  /* L'or. `--or` est celui de la charte ; `--or-clair` sert au texte fin,
+     où le premier manque un peu de contraste à petite taille. */
+  --or:#d4af37;
+  --or-clair:#e6cd82;
+  --or-voile:rgba(212,175,55,.10);
+  --or-bord:rgba(212,175,55,.34);
+
+  --rayon:24px;
+  --rayon-sm:14px;
+  --wrap:1280px;
+  --pas:clamp(68px,7.6vw,122px);  /* la respiration entre deux sections — resserrée
+                                     le 09/09 : à 148 px l'espace se lisait vide,
+                                     pas calme */
+}
+
+*,*::before,*::after{box-sizing:border-box;}
+
+/* ── LE GRAIN ────────────────────────────────────────────────────────────
+   Un bruit très fin, posé sur toute la page en `overlay`. C'est ce qui
+   sépare une page noire d'un écran éteint : sans lui, les aplats sont
+   parfaitement lisses et l'œil n'a rien à quoi s'accrocher. Le motif est un
+   SVG de 120 px inclus dans le fichier — aucune image à télécharger.
+   `pointer-events:none` : il ne doit jamais attraper un clic. */
+body::after{
+  content:"";position:fixed;inset:0;z-index:1;pointer-events:none;
+  opacity:.5;mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)' opacity='.5'/%3E%3C/svg%3E");
+}
+/* `hidden` doit gagner contre TOUT `display` posé plus bas. Sans cette ligne,
+   le menu du téléphone (`display:flex`) restait affiché sur ordinateur alors
+   que l'attribut disait le contraire — vu au premier chargement, 09/09/2026. */
+[hidden]{display:none !important;}
+html{-webkit-text-size-adjust:100%;scroll-behavior:smooth;}
+body{
+  margin:0;background:var(--noir);color:var(--g1);
+  font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;
+  font-size:16px;line-height:1.62;font-weight:400;
+  -webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;
+  font-feature-settings:'cv05' 1,'cv08' 1,'ss03' 1;  /* l'œil du l et du a d'Inter, plus proches d'Helvetica */
+  overflow-x:hidden;
+}
+img{max-width:100%;height:auto;display:block;}
+a{color:inherit;}
+h1,h2,h3,h4{margin:0;font-weight:400;color:var(--blanc);}
+p{margin:0;}
+ul,ol{margin:0;padding:0;list-style:none;}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;}
+table{border-collapse:collapse;width:100%;}
+::selection{background:var(--or);color:#000;}
+
+/* ─────────────────────────────────────── 3. Titres et textes ───────────── */
+/* La graisse 300 et l'interlettrage négatif sont le cœur de l'identité.
+   `text-wrap:balance` évite le mot orphelin sur la dernière ligne d'un
+   grand titre — la seule chose qui trahit un titre non composé à la main. */
+/* Les titres de section plafonnaient à 3,45 rem quand celui du premier écran
+   montait à 5,1 : l'écart faisait paraître tout le reste de la page timide.
+   Ils montent à 4,1 rem. Les références n'ont pas de demi-mesure là-dessus —
+   un titre y occupe la largeur de l'écran ou n'existe pas. */
+.display{
+  font-size:clamp(2.15rem,5.6vw,4.1rem);
+  font-weight:300;line-height:1.05;letter-spacing:-.03em;
+  color:var(--blanc);text-wrap:balance;
+}
+.display-xl{
+  font-size:clamp(2.6rem,7.6vw,5.1rem);
+  line-height:.99;letter-spacing:-.034em;font-weight:300;
+}
+.gris{color:var(--g2);}     /* la seconde ligne du titre — LE geste signature */
+
+.sur-titre{
+  font-size:clamp(.95rem,1.5vw,1.05rem);
+  color:var(--g2);font-weight:400;letter-spacing:-.005em;margin-bottom:1rem;
+  text-wrap:balance;display:flex;align-items:center;gap:.75rem;
+}
+/* Un court trait d'or ouvre chaque section. C'est trois pixels de couleur,
+   et c'est ce qui donne un début à la lecture au lieu d'un texte qui commence. */
+.sur-titre::before{
+  content:"";flex:0 0 auto;width:26px;height:1px;
+  background:linear-gradient(90deg,var(--or),transparent);
+}
+.tete-centre .sur-titre{justify-content:center;}
+.tete-centre .sur-titre::before{
+  background:linear-gradient(90deg,transparent,var(--or));
+}
+.intro{
+  margin-top:1.3rem;max-width:64ch;
+  font-size:clamp(1rem,1.55vw,1.155rem);line-height:1.66;color:var(--g1);
+}
+.intro-centre{margin-left:auto;margin-right:auto;text-align:center;}
+.tete{margin-bottom:clamp(2.2rem,4vw,3.4rem);}
+.tete-centre{text-align:center;}
+.tete-centre .display{margin-inline:auto;max-width:18ch;}
+.tete-centre .sur-titre{margin-inline:auto;}
+
+/* ────────────────────────────────────────── 4. Mise en page ────────────── */
+.wrap{width:100%;max-width:var(--wrap);margin-inline:auto;padding-inline:clamp(20px,5vw,40px);}
+.wrap-etroit{max-width:860px;}
+.sec{position:relative;padding-block:var(--pas);overflow-x:clip;}
+.sec-serree{padding-block:clamp(58px,7vw,110px);}
+.sec-collee{padding-top:0;}
+.sec-tete{padding-block:clamp(90px,11vw,160px) clamp(30px,4vw,52px);}
+
+/* Le halo. Une ellipse de blanc très faible, posée en haut de section et
+   fondue. `pointer-events:none` : décoratif, il ne doit jamais attraper un
+   clic destiné à ce qu'il y a dessous. */
+.halo{
+  position:absolute;left:50%;top:0;translate:-50% -52%;
+  width:min(1700px,170vw);height:min(880px,100vw);pointer-events:none;z-index:0;
+  background:radial-gradient(closest-side,rgba(255,255,255,.135),rgba(255,255,255,.045) 42%,transparent 72%);
+}
+.halo-hero{
+  translate:-50% -38%;height:min(1080px,120vw);
+  background:
+    radial-gradient(closest-side,rgba(255,255,255,.17),rgba(255,255,255,.05) 40%,transparent 70%),
+    radial-gradient(closest-side at 50% 62%,rgba(212,175,55,.10),transparent 68%);
+}
+/* Deux sections portent la décision d'achat : les prix et la garantie. Leur
+   halo prend une teinte d'or — la seule fois où la couleur sert de lumière
+   et non d'accent, et c'est ce qui les distingue des dix autres sections. */
+.halo-or{
+  background:
+    radial-gradient(closest-side,rgba(212,175,55,.16),rgba(212,175,55,.045) 42%,transparent 70%),
+    radial-gradient(closest-side,rgba(255,255,255,.06),transparent 62%);
+}
+/* Le halo respire, très lentement. Vingt-deux secondes pour un aller-retour :
+   on ne le voit pas bouger, on sent que la page est vivante. Coupé net si le
+   téléphone demande moins d'animations. */
+@media(prefers-reduced-motion:no-preference){
+  .halo{animation:respire 22s ease-in-out infinite alternate;}
+  .halo-hero{animation-duration:28s;}
+}
+@keyframes respire{
+  from{opacity:.82;transform:scale(1);}
+  to{opacity:1;transform:scale(1.08);}
+}
+.sec>.wrap{position:relative;z-index:1;}
+
+.grille-2,.grille-3,.grille-4{display:grid;gap:clamp(14px,1.8vw,22px);}
+.grille-2{grid-template-columns:1fr;}
+.grille-3{grid-template-columns:1fr;}
+.grille-4{grid-template-columns:1fr;}
+@media(min-width:660px){
+  .grille-2{grid-template-columns:repeat(2,minmax(0,1fr));}
+  .grille-4{grid-template-columns:repeat(2,minmax(0,1fr));}
+}
+@media(min-width:940px){
+  .grille-3{grid-template-columns:repeat(3,minmax(0,1fr));}
+  .grille-4{grid-template-columns:repeat(4,minmax(0,1fr));}
+}
+
+/* ───────────────────────────────────────────── 5. En-tête ─────────────── */
+.saut{
+  position:fixed;left:0;top:0;z-index:100;translate:0 -130%;
+  background:var(--blanc);color:#000;padding:.7rem 1.1rem;border-radius:0 0 var(--rayon-sm) 0;
+  text-decoration:none;font-weight:500;transition:translate .15s;
+}
+.saut:focus{translate:0 0;}
+
+.entete{
+  position:sticky;top:0;z-index:60;
+  background:rgba(0,0,0,.72);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
+  border-bottom:1px solid transparent;transition:border-color .25s,background .25s;
+}
+/* La barre ne gagne son trait qu'une fois la page descendue : en haut, elle
+   doit se confondre avec le premier écran, sinon elle le coupe en deux. */
+.entete.est-descendu{border-bottom-color:var(--bord);background:rgba(0,0,0,.86);}
+.entete-in{display:flex;align-items:center;gap:1.5rem;height:68px;}
+.marque{display:flex;align-items:baseline;gap:.6rem;text-decoration:none;color:var(--blanc);
+  flex:0 0 auto;padding-block:14px;}   /* 14 + 20 + 14 = 48 px de haut : la taille d'un pouce */
+.wm{height:15px;width:auto;display:block;}
+.marque-sub{
+  font-size:.7rem;letter-spacing:.24em;text-transform:uppercase;color:var(--g2);
+  font-weight:500;transform:translateY(-1px);
+}
+.nav{display:none;margin-left:auto;gap:2rem;}
+.nav a{
+  text-decoration:none;color:var(--g1);font-size:.925rem;position:relative;padding-block:.35rem;
+  transition:color .2s;
+}
+.nav a:hover{color:var(--blanc);}
+.nav a[aria-current="page"]{color:var(--blanc);}
+.nav a[aria-current="page"]::after{
+  content:"";position:absolute;left:0;right:0;bottom:-2px;height:1px;background:var(--or);
+}
+.entete-fin{display:flex;align-items:center;gap:.6rem;margin-left:auto;}
+@media(min-width:900px){.nav{display:flex;}.entete-fin{margin-left:0;}}
+
+.burger{display:grid;place-items:center;width:44px;height:44px;flex:0 0 auto;border-radius:10px;color:var(--blanc);}
+.burger:hover{background:var(--verre);}
+@media(min-width:900px){.burger{display:none;}}
+.menu-mobile{
+  border-top:1px solid var(--bord);background:rgba(0,0,0,.96);
+  padding:.6rem clamp(20px,5vw,40px) 1.4rem;display:flex;flex-direction:column;
+}
+.menu-mobile a{
+  text-decoration:none;color:var(--g1);padding:.85rem 0;font-size:1.05rem;
+  border-bottom:1px solid rgba(255,255,255,.05);
+}
+.menu-mobile a:last-of-type{border-bottom:0;}
+.menu-mobile-cta{
+  margin-top:.9rem;text-align:center;background:var(--blanc);color:#000 !important;
+  border-radius:999px;padding:.9rem 1rem !important;font-weight:500;border:0 !important;
+}
+
+/* ────────────────────────────────────────────── 6. Boutons ────────────── */
+.actions{display:flex;flex-wrap:wrap;gap:.7rem;margin-top:2rem;}
+.actions-centre{justify-content:center;}
+.btn{
+  display:inline-flex;align-items:center;gap:.55rem;
+  padding:.85rem 1.45rem;border-radius:999px;
+  font-size:.95rem;font-weight:500;text-decoration:none;letter-spacing:-.01em;
+  border:1px solid transparent;transition:background .2s,border-color .2s,color .2s,transform .12s;
+}
+.btn:active{transform:translateY(1px);}
+.btn-primaire{
+  background:linear-gradient(180deg,#fff,#dcdcdc);color:#000;
+  box-shadow:0 1px 0 rgba(255,255,255,.9) inset,0 14px 34px -18px rgba(255,255,255,.5);
+}
+.btn-primaire:hover{background:linear-gradient(180deg,#fff,#efefef);
+  box-shadow:0 1px 0 rgba(255,255,255,.9) inset,0 18px 44px -18px rgba(255,255,255,.7);}
+.btn-fantome{border-color:var(--bord-fort);color:var(--blanc);}
+.btn-fantome:hover{border-color:var(--blanc);background:var(--verre);}
+.btn-sm{padding:.55rem 1.05rem;font-size:.875rem;}
+.btn .ic{flex:0 0 auto;}
+.lien-fort{
+  display:inline-flex;align-items:center;gap:.4rem;color:var(--or-clair);
+  text-decoration:none;position:relative;
+  border-bottom:1px solid var(--or-bord);padding-bottom:2px;
+}
+/* Le lien ne fait que 28 px de haut : le soulignement doit rester fin, mais
+   la zone qu'on touche s'étend au-delà sans rien déplacer. */
+.lien-fort::after{content:"";position:absolute;inset:-10px -6px;}
+.lien-fort:hover{border-bottom-color:var(--or);}
+
+/* ─────────────────────────────────── 7. Verre : cartes et pastilles ───── */
+/* Le dégradé de haut en bas est ce qui fait « verre » plutôt que « boîte
+   grise » : la lumière du halo tombe d'en haut, la carte doit y répondre. */
+/* La carte, avant : du blanc à 3 % dans un cadre à 8 %. Posée sur du noir,
+   ça ne fait pas un objet, ça fait une tache un peu moins noire. Ce qui donne
+   la matière, c'est trois choses ensemble : un dégradé franc du haut vers le
+   bas, un LISERÉ DE LUMIÈRE sur l'arête supérieure (l'éclairage vient d'en
+   haut, l'arête doit le prendre) et une ombre portée profonde qui décolle la
+   carte du fond. */
+.carte,.cap,.mini,.niveau,.chiffre,.piece,.qa,.axe,.fiche,.an1,.tab-enveloppe{
+  position:relative;
+  background:linear-gradient(180deg,rgba(255,255,255,.082),rgba(255,255,255,.026) 46%,rgba(255,255,255,.015));
+  border:1px solid var(--bord);border-radius:var(--rayon);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.085),
+             0 22px 46px -30px rgba(0,0,0,1);
+  transition:border-color .3s,box-shadow .3s,transform .3s,background .3s;
+}
+/* Le survol ne change pas la couleur, il ajoute de la lumière : la carte se
+   relève d'un pixel et son arête s'éclaire. Sur un site monochrome, c'est le
+   seul retour possible sans introduire une couleur. */
+@media(hover:hover){
+  .carte:hover,.cap:hover,.mini:hover,.chiffre:hover,.piece:hover,.axe:hover{
+    transform:translateY(-2px);
+    border-color:var(--bord-fort);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.14),
+               0 30px 60px -34px rgba(0,0,0,1);
+  }
+}
+.carte,.cap,.mini,.piece{padding:clamp(20px,2.4vw,30px);}
+.carte h3,.cap h3,.mini h3,.piece h3{
+  font-size:1.14rem;font-weight:500;letter-spacing:-.015em;margin-bottom:.5rem;color:var(--blanc);
+}
+.carte p,.cap p,.mini p{font-size:.945rem;line-height:1.58;color:var(--g2);}
+.carte-sur{
+  font-size:.74rem;letter-spacing:.14em;text-transform:uppercase;color:var(--or);
+  font-weight:600;margin-bottom:.9rem;
+}
+.carte-sous{
+  display:flex;gap:.5rem;align-items:flex-start;margin-top:1.1rem;padding-top:1.1rem;
+  border-top:1px solid var(--bord);color:var(--g1) !important;
+}
+.carte-sous .ic{flex:0 0 auto;margin-top:.28rem;color:var(--or);}
+.carte-probleme p{font-family:'Lora',Georgia,serif;font-size:.985rem;line-height:1.62;}
+
+.pastille{
+  flex:0 0 auto;display:grid;place-items:center;
+  width:2.1rem;height:2.1rem;border-radius:50%;
+  border:1px solid var(--bord-fort);color:var(--g1);
+  background:linear-gradient(180deg,rgba(255,255,255,.07),rgba(255,255,255,.01));
+}
+.pastille-non{color:var(--g3);border-color:var(--bord);}
+.pastille-num{font-size:.85rem;font-weight:500;color:var(--or-clair);}
+.cap{display:flex;gap:1.1rem;align-items:flex-start;}
+@media(min-width:1000px){.caps-3{grid-template-columns:repeat(3,minmax(0,1fr));}}
+.cap .pastille{width:2.9rem;height:2.9rem;}
+
+.liste-check{display:flex;flex-direction:column;gap:.7rem;}
+.liste-check li{display:flex;gap:.75rem;align-items:flex-start;font-size:.945rem;line-height:1.5;color:var(--g1);}
+.liste-check .pastille{width:1.55rem;height:1.55rem;margin-top:.06rem;}
+.liste-check .pastille .ic{width:13px;height:13px;}
+.liste-non li{color:var(--g2);}
+
+.note-encadree{
+  display:flex;gap:.85rem;align-items:flex-start;margin-top:2rem;
+  padding:1.15rem 1.35rem;border-radius:var(--rayon-sm);
+  background:var(--verre);border:1px solid var(--bord);
+  font-size:.945rem;line-height:1.55;color:var(--g1);
+}
+.note-forte{border-color:var(--or-bord);background:var(--or-voile);}
+.note-encadree .pastille{width:1.7rem;height:1.7rem;}
+
+/* ───────────────────────────────────────────── 8. Chiffres ────────────── */
+.chiffres{margin-top:clamp(2rem,3vw,2.8rem);}
+.chiffre{padding:clamp(20px,2.2vw,26px);}
+/* Les quatre chiffres de preuve sont l'argument le plus fort de la page.
+   À 2,15 rem ils avaient la taille d'un sous-titre ; à 3 rem ils se lisent
+   de loin, ce qui est exactement leur rôle. Le dégradé va du blanc à l'or :
+   c'est le seul texte du site qui porte la couleur, et il la mérite. */
+.chiffre-val{
+  font-size:clamp(2.1rem,3.6vw,3rem);font-weight:300;letter-spacing:-.038em;
+  line-height:1;
+  background:linear-gradient(160deg,#fff 30%,var(--or-clair));
+  -webkit-background-clip:text;background-clip:text;
+  color:transparent;
+}
+.chiffre-lab{
+  font-size:.74rem;letter-spacing:.13em;text-transform:uppercase;color:var(--or);
+  font-weight:600;margin:.55rem 0 .8rem;
+}
+.chiffre-txt{font-size:.875rem;line-height:1.55;color:var(--g2);}
+.preuve-lien{margin-top:2rem;font-size:.95rem;}
+.preuve-lien-note{color:var(--g2);}
+
+/* ────────────────────────────────── 9. Cadres d'appareils ─────────────── */
+/* On montre le VRAI système, jamais une illustration. Le fondu en bas dit
+   « la capture continue » sans obliger à montrer un écran entier, qui serait
+   illisible à cette taille. */
+/* Les captures de Petit Gâteau sont crème, vertes et bordeaux : sur une page
+   noire, ce sont les SEULES sources de chaleur. On les laisse donc éclairer
+   autour d'elles, comme une lampe posée sur une table. C'est ce halo tiède
+   qui empêche la page d'être froide, et il ne coûte aucune couleur à la
+   charte : c'est la lumière du produit, pas une teinte inventée. */
+.tel{
+  border:1.5px solid var(--bord-fort);border-radius:30px;overflow:hidden;
+  background:#f7f2e6;position:relative;
+  box-shadow:0 34px 74px -30px rgba(0,0,0,.95),
+             0 0 0 1px rgba(0,0,0,.6),
+             0 0 110px -34px rgba(247,242,230,.42);
+  transition:box-shadow .45s,transform .45s;
+}
+@media(hover:hover){
+  .ecran:hover .tel,.tab-ecran:hover .tel{
+    transform:translateY(-4px);
+    box-shadow:0 44px 90px -32px rgba(0,0,0,.98),
+               0 0 0 1px rgba(0,0,0,.6),
+               0 0 140px -28px rgba(247,242,230,.6);
+  }
+}
+.tel-ecran{position:relative;aspect-ratio:390/560;overflow:hidden;}
+.tel-ecran img{width:100%;height:auto;}
+.tel-ecran::after{
+  content:"";position:absolute;inset:auto 0 0 0;height:38%;
+  background:linear-gradient(to bottom,transparent,rgba(0,0,0,.06) 30%,var(--noir) 96%);
+}
+.nav-cadre{
+  border:1px solid var(--bord-fort);border-radius:var(--rayon);overflow:hidden;
+  background:var(--n2);
+  box-shadow:0 50px 110px -40px rgba(0,0,0,.98),
+             0 0 160px -50px rgba(247,242,230,.4),
+             inset 0 1px 0 rgba(255,255,255,.09);
+}
+.nav-barre{
+  display:flex;align-items:center;gap:.42rem;padding:.68rem .95rem;
+  background:rgba(255,255,255,.045);border-bottom:1px solid var(--bord);
+}
+.nav-barre>span{width:9px;height:9px;border-radius:50%;background:rgba(255,255,255,.16);}
+.nav-url{
+  width:auto !important;height:auto !important;border-radius:999px !important;
+  background:rgba(0,0,0,.42) !important;margin-left:.7rem;padding:.2rem .85rem;
+  font-size:.72rem;color:var(--g2);letter-spacing:.01em;
+}
+
+/* ────────────────────────────────────── 10. Premier écran ─────────────── */
+.hero{position:relative;padding-top:clamp(56px,8vw,104px);padding-bottom:clamp(40px,5vw,72px);overflow-x:clip;}
+.hero-in{position:relative;z-index:1;text-align:center;}
+.hero-in .sur-titre{max-width:none;}
+.display-xl{margin-inline:auto;max-width:15ch;}
+.hero-sous{
+  margin-top:1.1rem;font-family:'Lora',Georgia,serif;font-style:italic;
+  font-size:clamp(1.15rem,2.3vw,1.65rem);color:var(--or-clair);letter-spacing:-.01em;
+}
+.hero-txt{
+  margin:1.5rem auto 0;max-width:60ch;
+  font-size:clamp(1rem,1.6vw,1.175rem);line-height:1.62;color:var(--g1);
+}
+.hero .actions{justify-content:center;margin-top:2.2rem;}
+.hero-preuves{
+  display:flex;flex-wrap:wrap;justify-content:center;gap:.7rem 1.6rem;margin-top:2.2rem;
+  font-size:.855rem;color:var(--g2);
+}
+.hero-preuves li{display:flex;align-items:center;gap:.5rem;}
+.hero-preuves .pastille{width:1.35rem;height:1.35rem;border-color:var(--or-bord);color:var(--or);}
+.hero-preuves .pastille .ic{width:11px;height:11px;}
+
+/* Le visuel du premier écran : l'ordinateur, et le téléphone posé dessus en
+   bas à droite. C'est la composition des références — deux appareils, deux
+   plans, pour dire « un site ET une app » sans l'écrire. */
+/* Le visuel du premier écran change de sujet selon la taille de l'écran, et
+   ce n'est pas un caprice : une capture d'ordinateur de 1800 px réduite à
+   350 px ne se lit plus — elle dit « il y a un site » sans qu'on puisse voir
+   lequel. Sous 900 px on montre donc le TÉLÉPHONE seul, en grand ; au-dessus,
+   l'ordinateur et le téléphone posé dessus, qui disent d'un coup « un site
+   ET une application ». Aucune image supplémentaire n'est téléchargée : ce
+   sont les deux mêmes, l'une des deux étant simplement masquée. */
+.hero-visuel{position:relative;margin-top:clamp(3rem,6vw,5rem);}
+.hero-visuel .nav-cadre{max-width:1000px;margin-inline:auto;display:none;}
+.tel-flottant{width:min(258px,68vw);margin-inline:auto;}
+.tel-flottant .tel-ecran{aspect-ratio:390/700;}
+@media(min-width:900px){
+  .hero-visuel .nav-cadre{display:block;}
+  .tel-flottant{
+    position:absolute;right:max(0px,calc(50% - 610px));bottom:-42px;
+    width:212px;margin:0;z-index:2;
+  }
+  .tel-flottant .tel-ecran{aspect-ratio:390/640;}
+}
+@media(min-width:1340px){.tel-flottant{width:240px;right:calc(50% - 650px);}}
+
+/* ─────────────────────────────────── 11. Écrans du produit ────────────── */
+.ecrans{gap:clamp(20px,3vw,34px);}
+.ecran{display:flex;flex-direction:column;}
+.ecran .tel{margin-bottom:1.6rem;}
+.ecran-num{
+  font-size:.74rem;letter-spacing:.16em;color:var(--or);font-weight:600;margin-bottom:.5rem;
+}
+.ecran h3{font-size:1.22rem;font-weight:500;letter-spacing:-.018em;margin-bottom:.6rem;}
+.ecran p{font-size:.945rem;line-height:1.58;color:var(--g2);}
+
+/* Les six écrans de l'app, en alternance gauche/droite. */
+.tab-ecrans{display:flex;flex-direction:column;gap:clamp(2.6rem,5vw,4.5rem);}
+.tab-ecran{display:grid;gap:clamp(1.4rem,3vw,3rem);align-items:center;}
+.tab-ecran .tel{max-width:290px;}
+.tab-ecran-txt h3{font-size:clamp(1.35rem,2.4vw,1.8rem);font-weight:400;letter-spacing:-.02em;margin-bottom:.75rem;}
+.tab-ecran-txt p{font-size:1rem;line-height:1.66;color:var(--g1);max-width:56ch;}
+@media(min-width:820px){
+  .tab-ecran{grid-template-columns:290px 1fr;}
+  .tab-ecran.est-pair{grid-template-columns:1fr 290px;}
+  .tab-ecran.est-pair .tel{order:2;}
+  .tab-ecran.est-pair .tab-ecran-txt{order:1;}
+}
+
+/* ─────────────────────────── 11 bis. L'éventail des écrans ────────────────
+   Le moment fort de la page. Les trois références ne vendent pas des
+   fonctionnalités, elles montrent le produit EN GRAND — et c'est précisément
+   ce qui manquait quand le site a été trouvé terne (09/09/2026).
+
+   Cinq téléphones en éventail, l'écran du milieu devant. `--i` va de −2 à +2 :
+   il donne l'angle, le décalage horizontal, la descente et l'ordre de
+   superposition, d'une seule variable écrite dans le HTML. Les quatre latéraux
+   sont légèrement assombris et floutés — sans cela, cinq captures nettes se
+   disputent l'œil et aucune ne gagne.
+
+   Le titre est SOUS l'image, pas au-dessus : on regarde d'abord, on lit
+   ensuite. C'est la composition de la deuxième référence. */
+.sec-eventail{padding-bottom:clamp(50px,6vw,90px);}
+.eventail{
+  position:relative;height:clamp(340px,52vw,560px);margin-bottom:clamp(2.2rem,4vw,3.4rem);
+  display:flex;align-items:flex-start;justify-content:center;
+}
+.ev-tel{
+  position:absolute;top:0;width:clamp(172px,23vw,272px);
+  transform:translateX(calc(var(--i) * clamp(88px,12vw,150px)))
+            translateY(calc(abs(var(--i)) * clamp(12px,1.6vw,24px)))
+            rotate(calc(var(--i) * 6deg))
+            scale(calc(1 - abs(var(--i)) * .04));
+  z-index:calc(10 - abs(var(--i)));
+  transition:transform .5s cubic-bezier(.16,1,.3,1),filter .5s;
+}
+/* Les latéraux reculent : un peu moins de lumière, un peu moins grands. Le
+   premier réglage les assombrissait de 16 % par cran et les deux extérieurs
+   disparaissaient presque ; 10 % suffisent à hiérarchiser sans les effacer. */
+.ev-tel .tel{filter:brightness(calc(1 - abs(var(--i)) * .1)) saturate(calc(1 - abs(var(--i)) * .08));}
+.ev-tel:not([style*="--i:0"]) .tel{
+  box-shadow:0 30px 66px -30px rgba(0,0,0,.98),0 0 0 1px rgba(0,0,0,.6),
+             0 0 90px -40px rgba(247,242,230,.3);
+}
+/* Plus d'écran visible : le fondu de bas de cadre passe de 38 % à 20 %.
+   Cinq téléphones dont le tiers inférieur est noir font une masse sombre ;
+   ce qu'on veut montrer, c'est l'application, pas ses ombres. */
+.ev-tel .tel-ecran{aspect-ratio:390/640;}
+.ev-tel .tel-ecran::after{height:20%;}
+/* Au survol, l'éventail s'ouvre un peu : la page répond au geste sans rien
+   déplacer d'autre. */
+@media(hover:hover){
+  .eventail:hover .ev-tel{
+    transform:translateX(calc(var(--i) * clamp(90px,12vw,146px)))
+              translateY(calc(abs(var(--i)) * clamp(6px,1vw,14px)))
+              rotate(calc(var(--i) * 8deg));
+  }
+  .eventail:hover .ev-tel .tel{filter:brightness(calc(1 - abs(var(--i)) * .08));}
+}
+/* Sous 640 px, cinq téléphones ne tiennent plus : on n'en garde que trois,
+   plus resserrés. Masquer les deux extérieurs vaut mieux que les écraser. */
+@media(max-width:640px){
+  .ev-tel[style*="--i:-2"],.ev-tel[style*="--i:2"]{display:none;}
+  .ev-tel{width:min(196px,50vw);
+    transform:translateX(calc(var(--i) * 24vw)) translateY(calc(abs(var(--i)) * 16px)) rotate(calc(var(--i) * 7deg)) scale(calc(1 - abs(var(--i)) * .05));}
+}
+.tete-apres{margin-bottom:0;}
+
+/* ───────────────────────────────────────────── 12. Parcours ───────────── */
+/* La frise. Ce n'était PAS une frise au premier essai : cinq cartes de verre
+   côte à côte laissaient 160 px de texte chacune, et « She presses Order »
+   cassait en trois lignes. En retirant la carte, le texte récupère toute la
+   colonne, et le trait qui relie les pastilles dit l'enchaînement mieux que
+   quatre bordures ne le faisaient.
+
+   Le nombre de colonnes est écrit dans le HTML (`style="--cols:5"`) parce que
+   lui seul sait combien d'étapes il porte : `repeat(5,…)` appliqué à une
+   frise de quatre laissait une colonne vide et rétrécissait les autres. */
+.parcours{display:grid;gap:24px;}
+@media(min-width:620px){.parcours{grid-template-columns:repeat(2,minmax(0,1fr));}}
+@media(min-width:1000px){
+  .parcours{grid-template-columns:repeat(var(--cols,4),minmax(0,1fr));gap:26px;}
+  /* Le trait ne se dessine que quand toutes les étapes tiennent sur UNE ligne :
+     entre deux rangées il relierait la fin d'une ligne au début de la suivante,
+     c'est-à-dire l'inverse de ce qu'il raconte. */
+  .parcours-ligne .etape::before{
+    content:"";position:absolute;left:2.5rem;right:-26px;top:1.05rem;height:1px;
+    background:var(--bord);
+  }
+  .parcours-ligne .etape:last-child::before{display:none;}
+}
+.etape{position:relative;padding-top:3.1rem;}
+.etape-num{
+  position:absolute;top:0;left:0;margin:0;
+  display:grid;place-items:center;width:2.1rem;height:2.1rem;border-radius:50%;
+  border:1px solid var(--bord-fort);background:var(--noir);
+  font-size:.72rem;font-weight:600;letter-spacing:.04em;color:var(--or);
+}
+.parcours-histoire .etape-num{color:var(--g2);}
+.etape h3{font-size:1.055rem;font-weight:500;letter-spacing:-.014em;margin-bottom:.5rem;}
+.etape p{font-size:.9rem;line-height:1.55;color:var(--g2);}
+.parcours-histoire .etape h3{font-size:1.2rem;}
+.parcours-histoire .etape p{font-size:.985rem;line-height:1.62;color:var(--g1);}
+
+/* ────────────────────────────────────────── 13. Duo et axes ───────────── */
+.duo{display:grid;gap:clamp(2rem,4vw,4rem);align-items:start;}
+@media(min-width:900px){.duo{grid-template-columns:1fr 1fr;}}
+.duo .tete{margin-bottom:0;}
+.duo-pts{display:grid;gap:clamp(14px,1.8vw,20px);}
+@media(min-width:560px){.duo-pts{grid-template-columns:repeat(2,minmax(0,1fr));}}
+.duo-preuve .tel{max-width:270px;margin-inline:auto;}
+.mini{padding:clamp(18px,2vw,24px);}
+.mini h3{display:flex;gap:.6rem;align-items:center;font-size:1.02rem;}
+.mini-non h3{color:var(--g1);}
+.minis{margin-top:clamp(1.6rem,2.4vw,2.2rem);}
+
+.axes{display:grid;gap:clamp(12px,1.6vw,16px);margin-top:clamp(1.8rem,3vw,2.6rem);}
+@media(min-width:640px){.axes{grid-template-columns:repeat(2,minmax(0,1fr));}}
+@media(min-width:1000px){.axes{grid-template-columns:repeat(3,minmax(0,1fr));}}
+.axe{padding:clamp(16px,1.9vw,22px);}
+.axe-lab{font-size:.72rem;letter-spacing:.15em;text-transform:uppercase;color:var(--g3);font-weight:600;}
+/* Le premier essai barrait la valeur de Doha. Barrer, c'est dire « faux » —
+   or la mise en place de Doha n'est pas fausse, c'est l'exemple. On lit
+   maintenant « QAR → your currency » : d'ici, vers chez vous. */
+.axe-duo{
+  margin-top:.6rem;display:flex;flex-wrap:wrap;align-items:center;gap:.5rem;
+}
+.axe-de{font-size:.92rem;color:var(--g3);}
+.axe-duo .ic{color:var(--or);flex:0 0 auto;}
+.axe-vers{font-size:1.02rem;color:var(--blanc);font-weight:500;letter-spacing:-.012em;}
+
+.duo-listes{display:grid;gap:clamp(1.8rem,3vw,3rem);}
+@media(min-width:800px){.duo-listes{grid-template-columns:1fr 1fr;}}
+.duo-listes h3{
+  font-size:1.3rem;font-weight:300;letter-spacing:-.02em;margin-bottom:1.4rem;
+}
+.duo-listes .oui h3{color:var(--blanc);}
+.duo-listes .non h3{color:var(--g2);}
+.duo-listes .liste-check li{font-size:1rem;}
+
+/* ─────────────────────────────────────── 14. Cartes de niveau ─────────── */
+.niveaux{gap:clamp(14px,1.6vw,18px);align-items:stretch;}
+.niveau{padding:clamp(22px,2.3vw,28px);display:flex;flex-direction:column;}
+/* Le niveau conseillé : ce n'est PAS un fond coloré (l'or ne sert jamais de
+   fond), c'est un bord d'or et un halo. Il ressort sans casser le monochrome. */
+.niveau-phare{
+  border-color:transparent;
+  background:linear-gradient(180deg,rgba(212,175,55,.11),rgba(212,175,55,.03) 45%,rgba(255,255,255,.02));
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.12),
+             0 34px 76px -36px rgba(212,175,55,.4);
+}
+/* Le cadre du niveau conseillé n'est pas une bordure mais un dégradé posé
+   entre deux masques : l'or y est franc en haut, éteint en bas. Une bordure
+   unie de la même couleur paraissait sale ; celle-ci accroche la lumière. */
+.niveau-phare::before{
+  content:"";position:absolute;inset:0;border-radius:inherit;padding:1px;
+  background:linear-gradient(160deg,rgba(212,175,55,.85),rgba(212,175,55,.16) 45%,rgba(255,255,255,.06));
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+  -webkit-mask-composite:xor;mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+  mask-composite:exclude;pointer-events:none;
+}
+.niveau-tete{display:flex;align-items:center;flex-wrap:wrap;gap:.6rem;}
+.niveau-num{font-size:.74rem;letter-spacing:.15em;color:var(--g3);font-weight:600;width:100%;}
+.niveau-tete h3{font-size:1.42rem;font-weight:400;letter-spacing:-.024em;}
+.niveau-badge{
+  font-size:.7rem;letter-spacing:.13em;text-transform:uppercase;font-weight:600;
+  color:var(--or);border:1px solid var(--or-bord);border-radius:999px;padding:.24rem .62rem;
+}
+.niveau-pour{
+  margin-top:.7rem;font-family:'Lora',Georgia,serif;font-style:italic;
+  font-size:.945rem;line-height:1.5;color:var(--g2);
+}
+.niveau-prix{margin:1.5rem 0 1.35rem;padding-bottom:1.35rem;border-bottom:1px solid var(--bord);}
+.prix{display:flex;align-items:baseline;gap:.42rem;}
+.prix-mt{font-size:clamp(2.1rem,3.4vw,2.6rem);font-weight:300;letter-spacing:-.038em;color:var(--blanc);line-height:1;}
+.niveau-phare .prix-mt{color:var(--or-clair);}
+.prix-per{font-size:.925rem;color:var(--g2);}
+.prix-note{margin-top:.62rem;font-size:.83rem;color:var(--g1);}
+.prix-setup{margin-top:.28rem;font-size:.83rem;color:var(--g3);}
+.niveau-herite{
+  font-size:.72rem;letter-spacing:.13em;text-transform:uppercase;color:var(--g3);
+  font-weight:600;margin-bottom:.95rem;
+}
+.niveau-quand{
+  margin-top:auto;padding-top:1.35rem;font-size:.875rem;line-height:1.5;color:var(--g2);
+  font-family:'Lora',Georgia,serif;font-style:italic;
+}
+.niveau .liste-check{margin-bottom:.6rem;}
+.niveaux-compacts .liste-check li{font-size:.895rem;}
+
+/* La bascule mensuel/annuel. `hidden` par défaut dans le HTML : sans
+   JavaScript elle n'apparaît pas, et les cartes montrent le prix mensuel —
+   la page reste juste, elle perd seulement un confort. */
+.bascule{display:flex;align-items:center;justify-content:center;gap:.85rem;margin-top:2.2rem;}
+.bascule-lab{font-size:.9rem;color:var(--g2);transition:color .2s;}
+.bascule-lab.est-actif{color:var(--blanc);}
+.bascule-eco{
+  display:inline-block;margin-left:.4rem;font-size:.72rem;letter-spacing:.09em;text-transform:uppercase;
+  color:var(--or);border:1px solid var(--or-bord);border-radius:999px;padding:.15rem .5rem;font-weight:600;
+}
+.bascule-btn{
+  width:52px;height:30px;border-radius:999px;background:var(--verre-fort);
+  border:1px solid var(--bord-fort);position:relative;flex:0 0 auto;transition:background .2s;
+}
+/* Même idée que le lien : l'interrupteur garde sa taille dessinée, sa zone
+   sensible monte à 64 × 46. */
+.bascule-btn::after{content:"";position:absolute;inset:-8px -6px;}
+.bascule-btn[aria-checked="true"]{background:var(--or-voile);border-color:var(--or-bord);}
+.bascule-pion{
+  position:absolute;top:3px;left:3px;width:21px;height:21px;border-radius:50%;
+  background:var(--blanc);transition:translate .22s cubic-bezier(.4,0,.2,1),background .2s;
+}
+.bascule-btn[aria-checked="true"] .bascule-pion{translate:23px 0;background:var(--or);}
+
+/* ───────────────────────────────── 15. La première année ──────────────── */
+/* Ce tableau existe parce que Samer lui-même a lu « 79 / mois · 890 une fois ·
+   ou 790 par an » comme un cumul, le 09/09/2026. Si l'auteur du prix s'y
+   trompe, un prospect s'y trompera. */
+.an1{padding:clamp(18px,2.2vw,28px);overflow-x:auto;}
+.tab-an1{min-width:520px;}
+.tab-an1 th,.tab-an1 td{padding:.95rem .7rem;text-align:right;vertical-align:baseline;}
+.tab-an1 thead th{
+  font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:var(--g3);font-weight:600;
+  border-bottom:1px solid var(--bord);
+}
+.tab-an1 tbody th{text-align:left;color:var(--blanc);font-size:1.02rem;font-weight:500;}
+.tab-an1 tbody tr{border-bottom:1px solid rgba(255,255,255,.05);}
+.tab-an1 tbody tr:last-child{border-bottom:0;}
+.tab-an1 .est-phare th,.tab-an1 .est-phare .an1-tot{color:var(--or-clair);}
+.an1-tot{display:block;font-size:1.28rem;font-weight:300;letter-spacing:-.028em;color:var(--blanc);}
+.an1-detail{display:block;font-size:.78rem;color:var(--g3);font-weight:400;margin-top:.22rem;}
+.an1-eco{color:var(--or);}
+.an1-apres{margin-top:1.4rem;font-size:.9rem;color:var(--g2);}
+
+/* ───────────────────────────────────────── 16. Comparatif ─────────────── */
+.tab-enveloppe{overflow-x:auto;padding:clamp(8px,1.2vw,14px);}
+.tab-comp{min-width:720px;font-size:.9rem;}
+.tab-comp th,.tab-comp td{padding:.82rem .85rem;text-align:center;}
+.tab-comp thead th{
+  font-size:1rem;font-weight:500;color:var(--blanc);letter-spacing:-.015em;
+  border-bottom:1px solid var(--bord);vertical-align:bottom;
+}
+.tab-comp thead th:first-child{
+  text-align:left;font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--g3);font-weight:600;
+}
+.tab-prix{display:block;font-size:.76rem;color:var(--g3);font-weight:400;margin-top:.25rem;}
+.tab-comp tbody th{text-align:left;font-weight:400;color:var(--g1);max-width:340px;}
+.tab-comp tbody tr{border-bottom:1px solid rgba(255,255,255,.045);}
+.tab-comp .ic{color:var(--or);margin-inline:auto;}
+.tab-vide{color:var(--g3);}
+.tab-groupe th{
+  font-size:.72rem !important;letter-spacing:.15em;text-transform:uppercase;
+  color:var(--or) !important;font-weight:600 !important;padding-top:1.7rem !important;
+}
+.tab-comp .est-phare{background:rgba(212,175,55,.045);}
+
+/* ───────────────────────────────────────── 17. La garantie ────────────── */
+.garantie{
+  border:1px solid var(--or-bord);border-radius:var(--rayon);
+  background:linear-gradient(180deg,rgba(212,175,55,.10),rgba(212,175,55,.028));
+  padding:clamp(26px,3.4vw,48px);
+}
+.garantie-tete{display:grid;gap:1.4rem;align-items:start;}
+@media(min-width:760px){.garantie-tete{grid-template-columns:auto 1fr;gap:2.2rem;}}
+.garantie-sceau{
+  display:grid;place-items:center;width:82px;height:82px;border-radius:50%;
+  border:1px solid var(--or-bord);color:var(--or);
+  font-size:1.9rem;font-weight:300;letter-spacing:-.03em;
+  background:radial-gradient(closest-side,rgba(212,175,55,.16),transparent);
+}
+.garantie-titre{
+  font-size:clamp(1.5rem,3vw,2.15rem);font-weight:300;letter-spacing:-.028em;
+  line-height:1.14;color:var(--blanc);
+}
+.garantie-txt{margin-top:.9rem;font-size:1.02rem;line-height:1.6;color:var(--g1);max-width:60ch;}
+.garantie-tete>div{min-width:0;}
+.garantie-pts{
+  display:grid;gap:clamp(1.2rem,2vw,2rem);margin-top:clamp(2rem,3vw,2.8rem);
+  padding-top:clamp(1.8rem,2.6vw,2.4rem);border-top:1px solid var(--or-bord);
+}
+@media(min-width:840px){.garantie-pts{grid-template-columns:repeat(3,1fr);}}
+.garantie-pts h3{font-size:1.02rem;font-weight:500;margin-bottom:.5rem;letter-spacing:-.014em;}
+.garantie-pts p{font-size:.9rem;line-height:1.55;color:var(--g2);}
+.garantie-compacte{padding:clamp(22px,2.6vw,32px);}
+
+/* ────────────────────────────────────────────── 18. Schéma ────────────── */
+.schema{margin-top:clamp(2rem,3vw,2.8rem);}
+.pieces{display:grid;gap:clamp(14px,2vw,20px);}
+@media(min-width:700px){.pieces{grid-template-columns:1fr 1fr;}}
+.piece-etiq{
+  font-size:.7rem;letter-spacing:.15em;text-transform:uppercase;font-weight:600;
+  color:var(--or);margin-bottom:.7rem;
+}
+.piece h3{font-size:1.3rem;font-weight:400;letter-spacing:-.02em;margin-bottom:1rem;}
+.piece ul{display:flex;flex-direction:column;gap:.45rem;}
+.piece li{font-size:.925rem;color:var(--g2);padding-left:1rem;position:relative;}
+.piece li::before{content:"";position:absolute;left:0;top:.62rem;width:4px;height:4px;border-radius:50%;background:var(--g3);}
+.fluxs{display:grid;gap:.9rem;margin-top:1.2rem;}
+@media(min-width:700px){.fluxs{grid-template-columns:1fr 1fr;}}
+.flux{padding:1rem 1.2rem;border-radius:var(--rayon-sm);border:1px dashed var(--bord-fort);}
+.flux-t{display:flex;align-items:center;gap:.5rem;font-size:.95rem;color:var(--blanc);font-weight:500;}
+.flux-t .ic{color:var(--or);flex:0 0 auto;}
+.flux-d{margin-top:.35rem;font-size:.86rem;color:var(--g2);line-height:1.5;}
+
+/* ────────────────────────────────────────── 19. Questions ─────────────── */
+.qas{display:flex;flex-direction:column;gap:.7rem;}
+.qa{overflow:hidden;}
+.qa summary{
+  display:flex;align-items:center;justify-content:space-between;gap:1.4rem;
+  padding:clamp(16px,1.9vw,22px) clamp(18px,2.1vw,26px);
+  cursor:pointer;list-style:none;font-size:1.045rem;color:var(--blanc);
+  font-weight:400;letter-spacing:-.014em;line-height:1.4;
+}
+.qa summary::-webkit-details-marker{display:none;}
+.qa summary .ic{flex:0 0 auto;color:var(--g2);transition:rotate .22s,color .2s;}
+.qa[open] summary .ic{rotate:45deg;color:var(--or);}
+.qa summary:hover .ic{color:var(--blanc);}
+.qa-rep{padding:0 clamp(18px,2.1vw,26px) clamp(18px,2.1vw,24px);}
+.qa-rep p{font-size:.965rem;line-height:1.68;color:var(--g1);max-width:74ch;}
+.faq-nav{display:flex;flex-wrap:wrap;gap:.55rem;margin-bottom:clamp(2rem,3.4vw,3rem);}
+.faq-nav a{
+  text-decoration:none;font-size:.865rem;color:var(--g1);
+  border:1px solid var(--bord);border-radius:999px;padding:.5rem 1.05rem;transition:.2s;
+}
+.faq-nav a:hover{border-color:var(--bord-fort);color:var(--blanc);background:var(--verre);}
+.faq-groupe{margin-bottom:clamp(2.6rem,4vw,3.6rem);scroll-margin-top:96px;}
+.faq-groupe-t{
+  font-size:.74rem;letter-spacing:.16em;text-transform:uppercase;color:var(--or);
+  font-weight:600;margin-bottom:1.2rem;
+}
+
+/* ─────────────────────────────────── 20. Fiche et bloc final ──────────── */
+.fiche{
+  display:flex;flex-wrap:wrap;gap:1.6rem;justify-content:space-between;align-items:center;
+  padding:clamp(24px,3vw,36px);
+}
+.fiche-nom{font-size:1.5rem;font-weight:400;color:var(--blanc);letter-spacing:-.024em;}
+.fiche-role{margin-top:.42rem;font-size:.955rem;color:var(--g2);max-width:44ch;}
+.fiche-lieu{margin-top:.42rem;font-size:.86rem;color:var(--g3);}
+.fiche-liens{display:flex;flex-wrap:wrap;gap:.7rem;}
+.sec-final{text-align:center;}
+.sec-final .tete{margin-bottom:0;}
+.sec-final .actions{justify-content:center;}
+.final-note{margin-top:1.8rem;font-size:.84rem;color:var(--g3);letter-spacing:.02em;}
+.sec-404{min-height:56vh;}
+.liens-404{display:flex;flex-wrap:wrap;justify-content:center;gap:.55rem;margin-top:2.4rem;}
+.liens-404 a{
+  text-decoration:none;font-size:.9rem;color:var(--g1);
+  border:1px solid var(--bord);border-radius:999px;padding:.55rem 1.15rem;
+}
+.liens-404 a:hover{border-color:var(--blanc);color:var(--blanc);}
+
+/* ───────────────────────────────────────────── 21. Pied ───────────────── */
+.pied{border-top:1px solid var(--bord);margin-top:clamp(3rem,6vw,6rem);padding-top:clamp(3rem,5vw,4.5rem);}
+.pied-in{display:grid;gap:clamp(2.2rem,4vw,4rem);}
+@media(min-width:820px){.pied-in{grid-template-columns:minmax(0,1.15fr) minmax(0,1.6fr);}}
+.wm-pied{height:16px;color:var(--blanc);}
+.pied-marque p{margin-top:1.1rem;font-size:.9rem;line-height:1.6;color:var(--g2);max-width:44ch;}
+.pied-cols{display:grid;gap:2rem;}
+@media(min-width:560px){.pied-cols{grid-template-columns:repeat(3,1fr);}}
+.pied-col h3{
+  font-size:.7rem;letter-spacing:.16em;text-transform:uppercase;color:var(--g3);
+  font-weight:600;margin-bottom:1rem;
+}
+.pied-col a{display:block;text-decoration:none;color:var(--g1);font-size:.925rem;padding:.6rem 0;}
+.pied-col a:hover{color:var(--blanc);}
+.pied-bas{
+  display:flex;flex-wrap:wrap;gap:.7rem 2rem;justify-content:space-between;
+  margin-top:clamp(2.6rem,4vw,3.6rem);padding-block:1.6rem;
+  border-top:1px solid rgba(255,255,255,.05);
+  font-size:.82rem;color:var(--g3);
+}
+
+/* ─────────────────────────────────── 22. Apparition au défilement ─────── */
+/* Léger, jamais bloquant : sans JavaScript, `.revele` n'est jamais posé et
+   tout est visible. On ne cache donc rien à un lecteur qui n'exécute rien. */
+.revele{opacity:0;translate:0 18px;transition:opacity .7s ease,translate .7s cubic-bezier(.16,1,.3,1);}
+.revele.est-vu{opacity:1;translate:0 0;}
+
+/* ─────────────────────────────────── 23. Accessibilité ────────────────── */
+.sr{
+  position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;
+  clip:rect(0 0 0 0);white-space:nowrap;border:0;
+}
+:focus-visible{outline:2px solid var(--or);outline-offset:3px;border-radius:4px;}
+@media(prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto;}
+  *,*::before,*::after{animation-duration:.001ms !important;transition-duration:.001ms !important;}
+  .revele{opacity:1;translate:none;}
+}
+/* Un écran qui force le fort contraste : on rend les bords lisibles plutôt
+   que de laisser des cartes invisibles. */
+@media(prefers-contrast:more){
+  :root{--bord:rgba(255,255,255,.3);--bord-fort:rgba(255,255,255,.5);--g2:#adadb2;--g3:#8f8f95;}
+}

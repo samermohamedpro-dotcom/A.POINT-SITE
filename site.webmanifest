@@ -1,7 +1,7 @@
 {
   "name": "A.Point Advisory",
   "short_name": "A.Point",
-  "description": "Digital operations for made-to-order food businesses",
+  "description": "Digital operations for made-to-order businesses",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#000000",

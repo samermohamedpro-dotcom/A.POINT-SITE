@@ -133,7 +133,8 @@
   if (!moinsDeMouvement && 'IntersectionObserver' in window) {
     var aReveler = $$('.sec .tete, .sec .carte, .sec .cap, .sec .mini, .sec .chiffre, '
       + '.sec .etape, .sec .niveau, .sec .ecran, .sec .axe, .sec .piece, .sec .garantie, '
-      + '.sec .an1, .sec .tab-enveloppe, .sec .qa, .sec .fiche, .hero-visuel');
+      + '.sec .an1, .sec .tab-enveloppe, .sec .qa, .sec .fiche, .sec .comp-fam, '
+      + '.sec .jauge, .hero-visuel');
 
     var obs = new IntersectionObserver(function (entrees, o) {
       entrees.forEach(function (e) {
@@ -156,6 +157,37 @@
       obs.observe(el);
     });
   }
+
+  /* ── 4 bis. Le comparatif : « +3 » montre LESQUELS ────────────────────
+     Ajouté le 10/09/2026. Le résumé dit qu'un niveau ajoute trois choses à
+     une famille ; cliquer le chiffre ouvre la famille et surligne ces
+     trois-là. C'est la « bulle d'info » demandée par Samer, mais sans une
+     ligne de texte de plus : l'information était déjà là, elle était juste
+     mélangée aux autres.
+
+     Au CLIC, jamais au survol : 96 % des visites se font au doigt, et un
+     survol n'existe pas sur un téléphone.
+
+     Le détail qui compte : le chiffre est DANS le `<summary>`, donc un clic
+     ouvre ou ferme le dépliant tout seul. On ne s'y oppose que dans un cas —
+     dépliant déjà ouvert sur une AUTRE colonne : là, on garde ouvert et on
+     déplace le surlignage. Sans ça, cliquer « +4 » à côté de « +3 » refermait
+     la famille qu'on venait d'ouvrir. */
+  $$('.comp-neuf').forEach(function (n) {
+    n.addEventListener('click', function (ev) {
+      var det = n.parentNode;
+      while (det && det.tagName !== 'DETAILS') { det = det.parentNode; }
+      if (!det) return;
+      var cle = n.getAttribute('data-niveau');
+      if (det.open && det.getAttribute('data-neuf') !== cle) ev.preventDefault();
+      det.setAttribute('data-neuf', cle);
+    });
+  });
+  $$('details.comp-fam').forEach(function (d) {
+    d.addEventListener('toggle', function () {
+      if (!d.open) d.removeAttribute('data-neuf');
+    });
+  });
 
   /* ── 5. Le sélecteur de niveau ──────────────────────────────────────────
      Le visiteur répond à quatre questions sur SON commerce ; le site lui dit
@@ -190,10 +222,38 @@
       if (barre) barre.style.width = Math.round((n / qs.length) * 100) + '%';
     };
 
+    /* La jauge « vous êtes ici ». Elle ne connaît aucun niveau : elle lit
+       le nom sur son propre pas, celui que `contenu.py` y a écrit. Recopier
+       « Complete » ici en ferait une deuxième copie, et c'est exactement ce
+       que le reste du projet passe son temps à interdire. */
+    /* `jaugeNiv`, et non `jauge` : ce nom-là est déjà pris un peu plus haut
+       par l'avancement du questionnaire (« question 2 sur 4 »). Les deux
+       jauges coexistent sur la même page, et la collision faisait tomber
+       TOUT le sélecteur — attrapée par le test qui monte la page. */
+    var jaugeNiv = $('#jauge'), jaugeNivEtat = $('#jauge-etat');
+    var jaugeNivVide = jaugeNivEtat ? jaugeNivEtat.innerHTML : '';
+    var jaugeNivIci = jaugeNiv ? (jaugeNiv.getAttribute('data-ici') || '') : '';
+
     var choisie = function (cle) {
       $$('.niveau').forEach(function (c) {
         c.classList.toggle('est-choisi', !!cle && c.getAttribute('data-niveau') === cle);
       });
+      if (!jaugeNiv) return;
+      var i = ORDRE.indexOf(cle), nom = '';
+      $$('.jauge-pas', jaugeNiv).forEach(function (p, k) {
+        var ici = !!cle && k === i;
+        p.classList.toggle('est-ici', ici);
+        p.classList.toggle('est-passe', !!cle && k < i);
+        if (ici) { var e = p.querySelector('.jauge-nom'); nom = e ? e.textContent : ''; }
+      });
+      if (!jaugeNivEtat) return;
+      if (nom) {
+        jaugeNivEtat.textContent = jaugeNivIci + ' ' + nom;
+        jaugeNiv.classList.add('est-situe');
+      } else {
+        jaugeNivEtat.innerHTML = jaugeNivVide;
+        jaugeNiv.classList.remove('est-situe');
+      }
     };
 
     var montrer = function (i) {

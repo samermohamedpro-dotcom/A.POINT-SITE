@@ -1008,11 +1008,293 @@ table{border-collapse:collapse;width:100%;}
 .tab-comp tbody tr{border-bottom:1px solid rgba(255,255,255,.045);}
 .tab-comp .ic{color:var(--or);margin-inline:auto;}
 .tab-vide{color:var(--g3);}
-.tab-groupe th{
-  font-size:.72rem !important;letter-spacing:.15em;text-transform:uppercase;
-  color:var(--or) !important;font-weight:600 !important;padding-top:1.7rem !important;
-}
 .tab-comp .est-phare{background:rgba(212,175,55,.045);}
+
+/* ── LES SIX FAMILLES ────────────────────────────────────────────────────
+   10/09/2026. Le comparatif affichait les 31 capacités, cochées quatre fois.
+   Samer : « c'est trop long et trop incompréhensible, ça donne pas envie de
+   lire toutes les lignes. » Il ne reste que SIX lignes, une par famille, et
+   le détail s'ouvre au clic.
+
+   Ce n'est pas un tableau : un `<table>` ne peut pas porter de dépliant sans
+   script, et la page doit rester vendeuse sans JavaScript. C'est donc une
+   grille, dont l'en-tête et chaque ligne partagent le MÊME gabarit de
+   colonnes — d'où `--comp-cols`, écrit à un seul endroit. */
+.comp{
+  /* Les colonnes de niveaux sont BORNÉES : sans borne haute, la colonne des
+     noms mangeait toute la largeur sur un grand écran et les quatre chiffres
+     se serraient à droite, loin du nom qu'ils qualifient (vu le 10/09). */
+  --comp-cols:minmax(0,1fr) repeat(4,minmax(56px,104px));
+  display:flex;flex-direction:column;gap:6px;
+  max-width:920px;margin:clamp(2rem,3.4vw,3rem) auto 0;
+}
+.comp-tete,.comp-fam summary{
+  display:grid;grid-template-columns:var(--comp-cols);
+  align-items:end;gap:.4rem;
+}
+.comp-tete{
+  padding:0 clamp(12px,1.6vw,20px) .9rem;
+  border-bottom:1px solid var(--bord);
+}
+.comp-col{text-align:center;font-size:.95rem;color:var(--blanc);line-height:1.25;}
+.comp-col b{font-weight:500;letter-spacing:-.015em;}
+.comp-num{display:none;font-weight:600;letter-spacing:.1em;font-size:.8rem;}
+.comp-verbe{
+  display:block;font-size:.7rem;letter-spacing:.13em;text-transform:uppercase;
+  color:var(--or);font-weight:600;margin-top:.3rem;
+}
+.comp-col.est-phare .comp-verbe{color:var(--or-clair);}
+.comp-tete .tab-prix{margin-top:.2rem;}
+
+/* Une famille. Le fond suit le geste du verre : dégradé du haut vers le bas,
+   liseré de lumière sur l'arête haute — la lumière vient d'en haut. */
+.comp-fam{
+  border:1px solid var(--bord);border-radius:var(--rayon-sm);
+  background:linear-gradient(180deg,var(--verre-fort),var(--verre));
+  position:relative;overflow:hidden;transition:border-color .2s,background .2s;
+}
+.comp-fam::before{
+  content:"";position:absolute;inset:0 0 auto;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.16),transparent);
+}
+.comp-fam:hover{border-color:var(--bord-fort);}
+.comp-fam[open]{border-color:var(--or-bord);}
+.comp-fam summary{
+  /* 56 px de haut : au-dessus des 44 px que `mesures.mjs` exige d'une cible
+     tactile. Le tableau en est exclu de cette mesure, la ligne ne l'est pas. */
+  min-height:56px;align-items:center;cursor:pointer;list-style:none;
+  padding:.85rem clamp(12px,1.6vw,20px);
+}
+.comp-fam summary::-webkit-details-marker{display:none;}
+.comp-fam-nom{
+  display:flex;align-items:center;gap:.55rem;
+  font-size:1rem;color:var(--blanc);font-weight:400;letter-spacing:-.015em;
+  line-height:1.3;text-align:left;
+}
+/* Le petit chiffre après le nom : combien de capacités la famille contient
+   en tout. Il dit « il y a quelque chose dessous » sans le mot « détail ». */
+.comp-fam-n{
+  flex:0 0 auto;font-size:.7rem;color:var(--g3);font-weight:600;
+  border:1px solid var(--bord);border-radius:999px;padding:.05rem .42rem;
+  transition:.2s;
+}
+.comp-fam[open] .comp-fam-n,.comp-fam:hover .comp-fam-n{color:var(--or);border-color:var(--or-bord);}
+.comp-fam-nom .ic{flex:0 0 auto;color:var(--g3);transition:rotate .22s,color .2s;}
+.comp-fam[open] .comp-fam-nom .ic{rotate:45deg;color:var(--or);}
+.comp-fam:hover .comp-fam-nom .ic{color:var(--blanc);}
+.comp-cell{
+  display:flex;align-items:center;justify-content:center;
+  min-height:2rem;border-radius:10px;
+}
+.comp-cell.est-phare{background:rgba(212,175,55,.055);}
+.comp-cell .ic{color:var(--or);opacity:.55;}
+.comp-cell-non .tab-vide{color:var(--g3);}
+/* « +3 » : ce que CE niveau ajoute. C'est le seul endroit de la page où la
+   montée se lit en un coup d'œil — d'où l'or, et d'où le fait qu'il REMPLACE
+   la coche au lieu de s'y ajouter. */
+.comp-neuf{
+  font-size:.86rem;font-weight:600;color:var(--or);letter-spacing:-.01em;
+  font-variant-numeric:tabular-nums;
+}
+.comp-fam .tab-enveloppe{
+  padding:0 clamp(12px,1.6vw,20px) clamp(14px,1.8vw,20px);
+  border-top:1px solid var(--bord);margin-top:-1px;
+}
+.comp-fam .tab-comp{min-width:520px;margin-top:1rem;}
+
+/* ── LA MONTÉE ───────────────────────────────────────────────────────────
+   Trois endroits, demandés par Samer le 10/09/2026 : en haut du comparatif
+   (c'est le titre de la section), dans chaque carte (`.montee`), et dans le
+   bandeau de fin (`.bandeau-montee`). */
+.niveau-num{display:flex;align-items:center;justify-content:space-between;gap:.6rem;}
+.niveau-verbe{
+  font-size:.72rem;letter-spacing:.16em;text-transform:uppercase;font-weight:600;
+  color:var(--or);border:1px solid var(--or-bord);border-radius:999px;
+  padding:.2rem .68rem;background:var(--or-voile);
+}
+.niveau-phare .niveau-verbe{color:var(--or-clair);}
+.montee{
+  display:flex;align-items:flex-start;gap:.6rem;
+  margin:0 0 1rem;padding:.7rem .85rem;
+  border-radius:var(--rayon-sm);
+  border:1px dashed var(--or-bord);background:var(--or-voile);
+}
+.montee-plus{
+  flex:0 0 auto;font-size:1.05rem;line-height:1.15;font-weight:300;color:var(--or);
+}
+.montee-txt{font-size:.9rem;line-height:1.45;color:var(--blanc);}
+
+/* Le dépliant d'une carte : « 6 more ». Il porte le reste des capacités, que
+   personne ne lit à froid mais que le prospect décidé veut voir. */
+.niveau-plus{margin-bottom:.6rem;}
+.niveau-plus summary{
+  list-style:none;cursor:pointer;display:inline-flex;align-items:center;gap:.4rem;
+  min-height:44px;font-size:.845rem;color:var(--g2);
+  border-bottom:1px solid transparent;transition:color .2s,border-color .2s;
+}
+.niveau-plus summary::-webkit-details-marker{display:none;}
+.niveau-plus summary:hover{color:var(--blanc);border-bottom-color:var(--bord-fort);}
+.niveau-plus-ouvrir::after{content:" +";}
+.niveau-plus-fermer{display:none;}
+.niveau-plus[open] .niveau-plus-ouvrir{display:none;}
+.niveau-plus[open] .niveau-plus-fermer{display:inline;}
+.niveau-plus .liste-check{margin-top:.85rem;}
+
+.bandeau-montee{text-align:center;}
+.bm-sur{
+  font-size:.74rem;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--or);font-weight:600;
+}
+.bm-mots{
+  display:flex;flex-wrap:wrap;justify-content:center;align-items:center;
+  gap:.5rem clamp(.7rem,2.2vw,1.6rem);margin:1.1rem 0 1.3rem;
+}
+.bm-mot{
+  font-size:clamp(1.5rem,4.4vw,2.7rem);font-weight:200;letter-spacing:-.03em;
+  color:var(--g2);line-height:1.1;
+}
+/* Chaque mot est plus clair que le précédent : la montée se VOIT avant
+   d'être lue. Les quatre nuances sont celles des textes de la charte. */
+.bm-mot:nth-child(2){color:var(--g1);}
+.bm-mot:nth-child(3){color:var(--blanc);}
+.bm-mot:nth-child(4){
+  background:linear-gradient(100deg,var(--blanc),var(--or));
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+}
+.bm-mot+.bm-mot::before{
+  content:"→";display:inline-block;margin-right:clamp(.5rem,2vw,1.2rem);
+  font-size:.5em;color:var(--or);vertical-align:.28em;
+}
+.bm-formule{
+  font-family:'Lora',Georgia,serif;font-style:italic;
+  font-size:clamp(1.1rem,2.3vw,1.5rem);color:var(--blanc);
+}
+.bm-sous{margin:.85rem auto 0;max-width:52ch;font-size:.93rem;color:var(--g2);}
+
+@media (max-width:760px){
+  /* Au téléphone, le nom du niveau ne tient pas dans une colonne : on montre
+     le numéro et le prix, et le nom entier reste sur les cartes. */
+  .comp{--comp-cols:minmax(0,1fr) repeat(4,44px);}
+  .comp-fam summary{gap:.3rem;padding-inline:14px;}
+  .comp-fam-nom{gap:.4rem;}
+  /* La pastille du total disparaît au téléphone : elle vole au nom la place
+     qui lui évite de passer à la ligne, et le « + » suffit à dire que ça
+     s'ouvre. Mesuré sur « Orders & site », qui tenait sur deux lignes. */
+  .comp-fam-n{display:none;}
+  .comp-col b,.comp-col .comp-verbe{display:none;}
+  .comp-num{display:block;}
+  .comp-tete .tab-prix{font-size:.7rem;}
+  .comp-fam-nom{font-size:.9rem;}
+}
+
+/* ── LA JAUGE « VOUS ÊTES ICI » ──────────────────────────────────────────
+   Demandée par Samer le 10/09/2026. Quatre points reliés par un rail : elle
+   dit en une image ce que le bandeau de fin dit en mots, et elle vaut déjà
+   quelque chose avant qu'on ait répondu à quoi que ce soit. Le sélecteur y
+   pose ensuite le repère. */
+.jauge{max-width:820px;margin:0 auto;}
+.jauge-rail{
+  display:grid;grid-template-columns:repeat(4,1fr);
+  position:relative;list-style:none;padding:0;margin:0;
+}
+/* Le rail passe DERRIÈRE les points, et s'arrête au centre du premier et du
+   dernier : un trait qui dépasse donne l'impression qu'il manque une étape. */
+.jauge-rail::before{
+  content:"";position:absolute;top:7px;left:12.5%;right:12.5%;height:1px;
+  background:linear-gradient(90deg,var(--bord),var(--bord-fort));
+}
+.jauge-pas{
+  position:relative;display:flex;flex-direction:column;align-items:center;
+  gap:.55rem;text-align:center;padding-top:0;
+}
+.jauge-pt{
+  width:15px;height:15px;border-radius:50%;
+  background:var(--n1);border:1px solid var(--bord-fort);
+  transition:background .35s,border-color .35s,box-shadow .35s,scale .35s;
+}
+.jauge-mot{
+  font-size:.72rem;letter-spacing:.15em;text-transform:uppercase;font-weight:600;
+  color:var(--g3);transition:color .35s;
+}
+.jauge-nom{font-size:.8rem;color:var(--g3);transition:color .35s;}
+.jauge-pas.est-passe .jauge-pt{background:var(--or-bord);border-color:var(--or-bord);}
+.jauge-pas.est-passe .jauge-mot{color:var(--g2);}
+.jauge-pas.est-ici .jauge-pt{
+  background:var(--or);border-color:var(--or);scale:1.35;
+  box-shadow:0 0 0 5px rgba(212,175,55,.16);
+}
+.jauge-pas.est-ici .jauge-mot,.jauge-pas.est-ici .jauge-nom{color:var(--or-clair);}
+.jauge-etat{
+  margin-top:1.7rem;text-align:center;font-size:.93rem;color:var(--g2);
+}
+.jauge.est-situe .jauge-etat{
+  color:var(--blanc);font-family:'Lora',Georgia,serif;font-style:italic;font-size:1.05rem;
+}
+/* Le lien est la seule chose cliquable de la jauge : il doit rattraper le
+   doigt. À 27 px de haut, `mesures.mjs` l'a refusé à 320 et 390 px — un lien
+   inline ne fait que la hauteur de sa ligne. `inline-block` plus un peu de
+   marge intérieure le porte à 46 px sans rien déplacer à l'écran. */
+.jauge-etat .lien-fort{display:inline-block;margin-left:.35rem;padding:.6rem .4rem;}
+/* La jauge se glisse entre le premier écran et les cartes. `sec-collee` met
+   sa marge haute à zéro : le point du palier courant, agrandi et halé, y
+   débordait sur le texte au-dessus. On lui rend un peu d air en haut, rien
+   en bas — les cartes doivent suivre immédiatement. */
+.sec-jauge{padding-top:clamp(28px,3.4vw,44px);padding-bottom:0;}
+@media (max-width:520px){
+  .jauge-nom{display:none;}          /* le mot suffit : Sell · Organise · Know · Grow */
+  /* .75rem = 12 px, le plancher que `mesures.mjs` fait respecter. À .66rem
+     il mesurait 10,6 px et le test l'a refusé : sur une page de prix, le mot
+     qui résume un niveau est tout sauf décoratif. L'interlettrage cède à sa
+     place, pas la taille. */
+  .jauge-mot{font-size:.75rem;letter-spacing:.05em;}
+}
+
+/* ── « +3 » MONTRE LESQUELS ──────────────────────────────────────────────
+   Cliquer le chiffre ouvre la famille et surligne les lignes que CE niveau
+   ajoute. L'information était déjà là ; elle était mélangée aux autres. */
+.comp-neuf{cursor:pointer;border-radius:8px;padding:.15rem .35rem;transition:background .2s,scale .2s;}
+@media(hover:hover){ .comp-neuf:hover{background:rgba(212,175,55,.14);scale:1.08;} }
+.comp-fam[data-neuf] tbody tr{transition:opacity .3s;}
+/* On n'ÉTEINT pas les autres lignes, on éclaire celles-ci : baisser les
+   autres ferait croire qu'elles ne sont plus incluses. */
+.comp-fam[data-neuf="foundation"] tr[data-depuis="foundation"],
+.comp-fam[data-neuf="operations"] tr[data-depuis="operations"],
+.comp-fam[data-neuf="complete"]   tr[data-depuis="complete"],
+.comp-fam[data-neuf="signature"]  tr[data-depuis="signature"]{
+  background:linear-gradient(90deg,rgba(212,175,55,.13),rgba(212,175,55,.02));
+  box-shadow:inset 3px 0 0 var(--or);
+}
+.comp-fam[data-neuf] tr[data-depuis] th{color:var(--g1);}
+.comp-fam[data-neuf="foundation"] tr[data-depuis="foundation"] th,
+.comp-fam[data-neuf="operations"] tr[data-depuis="operations"] th,
+.comp-fam[data-neuf="complete"]   tr[data-depuis="complete"] th,
+.comp-fam[data-neuf="signature"]  tr[data-depuis="signature"] th{color:var(--blanc);}
+
+/* ── MICRO-INTERACTIONS ──────────────────────────────────────────────────
+   Même langue que le reste : le survol n'ajoute jamais une couleur, il
+   ajoute de la lumière. Tout est désarmé par `prefers-reduced-motion`, qui
+   est déclaré une seule fois, à la fin du fichier. */
+@media(hover:hover){
+  .niveau:hover{
+    transform:translateY(-2px);border-color:var(--bord-fort);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.15),0 34px 66px -34px rgba(0,0,0,1);
+  }
+  .niveau:hover .niveau-verbe{
+    background:rgba(212,175,55,.20);border-color:var(--or);color:var(--or-clair);
+  }
+  .niveau-verbe{transition:background .25s,border-color .25s,color .25s;}
+}
+/* La coche se TRACE quand la carte entre à l'écran, une seule fois, de haut
+   en bas. C'est le seul endroit du site où quelque chose se dessine : réservé
+   aux cartes de prix, là où le visiteur compte ce qu'il obtient. */
+@keyframes tracer{ to { stroke-dashoffset:0; } }
+.niveau.est-vu .liste-check > li:nth-child(-n+6) .pastille .ic path{
+  stroke-dasharray:26;stroke-dashoffset:26;
+  animation:tracer .45s cubic-bezier(.65,0,.35,1) forwards;
+}
+.niveau.est-vu .liste-check > li:nth-child(1) .pastille .ic path{animation-delay:.10s;}
+.niveau.est-vu .liste-check > li:nth-child(2) .pastille .ic path{animation-delay:.19s;}
+.niveau.est-vu .liste-check > li:nth-child(3) .pastille .ic path{animation-delay:.28s;}
 
 /* ───────────────────────────────────────── 17. La garantie ────────────── */
 .garantie{

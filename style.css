@@ -1192,7 +1192,11 @@ table{border-collapse:collapse;width:100%;}
    dit en une image ce que le bandeau de fin dit en mots, et elle vaut déjà
    quelque chose avant qu'on ait répondu à quoi que ce soit. Le sélecteur y
    pose ensuite le repère. */
-.jauge{max-width:820px;margin:0 auto;}
+/* De l'air au-dessus : sur l'accueil la jauge suit un paragraphe, et collée
+   à lui elle se lisait comme son soulignement. */
+.jauge{max-width:820px;margin:clamp(1.8rem,3vw,2.8rem) auto 0;}
+/* Une ligne d'état vide ne doit pas laisser sa marge derrière elle. */
+.jauge-etat:empty{display:none;}
 .jauge-rail{
   display:grid;grid-template-columns:repeat(4,1fr);
   position:relative;list-style:none;padding:0;margin:0;
